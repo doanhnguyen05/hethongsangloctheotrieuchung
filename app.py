@@ -49,7 +49,7 @@ def parse_followup_answers(form_data, questions):
     return list(dict.fromkeys(extra_symptoms)), adjustments, answered
 
 
-@app.route("/")
+@app.route('/', methods=['GET', 'POST'])
 def index():
     grouped_symptoms = {
         group_name: [(code, SYMPTOMS[code]) for code in codes]
