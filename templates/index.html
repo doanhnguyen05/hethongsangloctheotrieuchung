@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedAI Screening | Hệ thống sàng lọc bệnh</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <section class="hero-panel">
+            <div class="hero-badge">MedAI Doctor Interview</div>
+            <h1>Phỏng vấn triệu chứng như một bác sĩ AI</h1>
+            <p class="hero-text">
+                Người bệnh nhập hồ sơ cơ bản, mô tả triệu chứng bằng câu tự nhiên, chọn thêm dấu hiệu nổi bật,
+                sau đó hệ thống sẽ hỏi tiếp những điểm còn mơ hồ trước khi đưa ra kết luận cuối cùng.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <strong>Bước 1</strong>
+                    <span>Nhập hồ sơ và mô tả bệnh</span>
+                </div>
+                <div class="stat-box">
+                    <strong>Bước 2</strong>
+                    <span>Bác sĩ AI hỏi bổ sung</span>
+                </div>
+                <div class="stat-box">
+                    <strong>Bước 3</strong>
+                    <span>Kết luận có giải thích</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="container glass-card">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Bước đầu tiếp nhận</p>
+                    <h2>Hồ sơ người bệnh và mô tả ban đầu</h2>
+                </div>
+                <div class="guide-chip">Tiếp nhận → Hỏi thêm → Kết luận</div>
+            </div>
+
+            <form method="post" action="/predict" id="screening-form">
+                <input type="hidden" name="stage" value="initial">
+
+                <div class="patient-grid patient-grid-4">
+                    <div class="input-group">
+                        <label for="name">Họ và tên người bệnh</label>
+                        <input id="name" type="text" name="name" placeholder="Ví dụ: Nguyễn Văn A" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="age">Tuổi</label>
+                        <input id="age" type="number" name="age" min="0" max="120" placeholder="Ví dụ: 28" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="gender">Giới tính</label>
+                        <select id="gender" name="gender" required>
+                            <option value="all">Khác / Chưa xác định</option>
+                            <option value="male">Nam</option>
+                            <option value="female">Nữ</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="severity">Mức độ hiện tại</label>
+                        <select id="severity" name="severity" required>
+                            <option value="mild">Nhẹ</option>
+                            <option value="moderate" selected>Vừa</option>
+                            <option value="severe">Nặng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="patient-grid patient-grid-2">
+                    <div class="input-group no-top-margin">
+                        <label for="duration">Thời gian xuất hiện triệu chứng</label>
+                        <select id="duration" name="duration" required>
+                            <option value="1day">Mới khoảng 1 ngày</option>
+                            <option value="fewdays" selected>Đã vài ngày</option>
+                            <option value="weeks">Kéo dài nhiều tuần</option>
+                        </select>
+                    </div>
+                    <div class="helper-card no-top-margin">
+                        <strong>Cách nhập giống bác sĩ hỏi bệnh</strong>
+                        <span>Hãy mô tả bằng câu tự nhiên, ví dụ: “Tôi ho ra máu vài ngày nay, sụt cân nhanh và mệt mỏi”. Hệ thống sẽ không kết luận ngay mà sẽ hỏi thêm nếu còn thiếu dữ kiện.</span>
+                    </div>
+                </div>
+
+                <div class="input-group text-area-group">
+                    <label for="symptom_text">Mô tả triệu chứng bằng câu tự nhiên</label>
+                    <textarea id="symptom_text" name="symptom_text" rows="5" placeholder="Ví dụ: Tôi đau ngực trái, khó thở khi nằm, mệt khi vận động và phù chân." required></textarea>
+                </div>
+
+                <div class="criteria-box">
+                    <h3>Logic phỏng vấn của bác sĩ AI</h3>
+                    <ul class="logic-list">
+                        <li><strong>Không kết luận chỉ vì 1 triệu chứng:</strong> ví dụ ho ra máu chưa đủ để khẳng định lao hay ung thư phổi.</li>
+                        <li><strong>Ưu tiên hội chứng triệu chứng:</strong> hệ thống sẽ xem các dấu hiệu đi kèm như sụt cân, ho kéo dài, đau ngực, sốt về chiều.</li>
+                        <li><strong>Có hỏi lại nếu còn mơ hồ:</strong> ví dụ đau ngực sẽ hỏi thêm có lan tay trái hay không.</li>
+                        <li><strong>Kết luận sau cùng:</strong> chỉ đưa xếp hạng bệnh sau khi đã cân nhắc hồ sơ, mức độ nặng, thời gian và câu trả lời bổ sung.</li>
+                    </ul>
+                </div>
+
+                <div class="selection-panel">
+                    <div>
+                        <h3 class="symptom-title">Chọn thêm các triệu chứng nổi bật nếu có</h3>
+                        <p class="panel-subtext">Phần này giúp bác sĩ AI nhận biết đúng từ khóa ngay cả khi bạn mô tả ngắn.</p>
+                    </div>
+                    <div class="helper-card compact-helper">
+                        <strong>Gợi ý</strong>
+                        <span>Chọn các triệu chứng thật sự đang có. Đừng chọn dàn trải tất cả.</span>
+                    </div>
+                </div>
+
+                {% for group_name, items in grouped_symptoms.items() %}
+                <div class="symptom-group">
+                    <div class="symptom-group-header">
+                        <h4>{{ group_name }}</h4>
+                        <span>{{ items|length }} triệu chứng</span>
+                    </div>
+                    <div class="symptom-grid">
+                        {% for code, symptom_name in items %}
+                        <label class="symptom-card">
+                            <input type="checkbox" name="symptoms" value="{{ code }}">
+                            <span class="symptom-checkmark"></span>
+                            <span class="symptom-name">{{ symptom_name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <p class="form-hint">Sau bước này, nếu dữ kiện chưa đủ chắc chắn thì bác sĩ AI sẽ hỏi thêm trước khi kết luận.</p>
+                    <button class="primary-btn" type="submit">Bắt đầu phân tích hồ sơ</button>
+                </div>
+                <div class="two-columns">
+                    <div class="input-group">
+                        <label>Mức độ triệu chứng:</label>
+                        <select name="severity" class="form-control">
+                            <option value="mild">Nhẹ</option>
+                            <option value="moderate">Vừa</option>
+                            <option value="severe">Nặng (Ảnh hưởng sinh hoạt)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Thời gian xuất hiện:</label>
+                        <select name="duration" class="form-control">
+                            <option value="1day">Mới 1 ngày</option>
+                            <option value="few_days">Vài ngày</option>
+                            <option value="weeks">Kéo dài nhiều tuần</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
