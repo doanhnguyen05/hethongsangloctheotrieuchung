@@ -16,18 +16,9 @@
                 sau đó hệ thống sẽ hỏi tiếp những điểm còn mơ hồ trước khi đưa ra kết luận cuối cùng.
             </p>
             <div class="hero-stats">
-                <div class="stat-box">
-                    <strong>Bước 1</strong>
-                    <span>Nhập hồ sơ và mô tả bệnh</span>
-                </div>
-                <div class="stat-box">
-                    <strong>Bước 2</strong>
-                    <span>Bác sĩ AI hỏi bổ sung</span>
-                </div>
-                <div class="stat-box">
-                    <strong>Bước 3</strong>
-                    <span>Kết luận có giải thích</span>
-                </div>
+                <div class="stat-box"><strong>Bước 1</strong><span>Nhập hồ sơ và mô tả bệnh</span></div>
+                <div class="stat-box"><strong>Bước 2</strong><span>Bác sĩ AI hỏi bổ sung</span></div>
+                <div class="stat-box"><strong>Bước 3</strong><span>Kết luận có giải thích</span></div>
             </div>
         </section>
 
@@ -40,7 +31,7 @@
                 <div class="guide-chip">Tiếp nhận → Hỏi thêm → Kết luận</div>
             </div>
 
-            <form method="post" action="/predict" id="screening-form">
+            <form method="POST" action="/predict" id="screening-form">
                 <input type="hidden" name="stage" value="initial">
 
                 <div class="patient-grid patient-grid-4">
@@ -81,7 +72,7 @@
                     </div>
                     <div class="helper-card no-top-margin">
                         <strong>Cách nhập giống bác sĩ hỏi bệnh</strong>
-                        <span>Hãy mô tả bằng câu tự nhiên, ví dụ: “Tôi ho ra máu vài ngày nay, sụt cân nhanh và mệt mỏi”. Hệ thống sẽ không kết luận ngay mà sẽ hỏi thêm nếu còn thiếu dữ kiện.</span>
+                        <span>Hãy mô tả bằng câu tự nhiên, ví dụ: “Tôi ho ra máu vài ngày nay, sụt cân nhanh và mệt mỏi”. Hệ thống sẽ hỏi thêm nếu còn thiếu dữ kiện.</span>
                     </div>
                 </div>
 
@@ -90,25 +81,8 @@
                     <textarea id="symptom_text" name="symptom_text" rows="5" placeholder="Ví dụ: Tôi đau ngực trái, khó thở khi nằm, mệt khi vận động và phù chân." required></textarea>
                 </div>
 
-                <div class="criteria-box">
-                    <h3>Logic phỏng vấn của bác sĩ AI</h3>
-                    <ul class="logic-list">
-                        <li><strong>Không kết luận chỉ vì 1 triệu chứng:</strong> ví dụ ho ra máu chưa đủ để khẳng định lao hay ung thư phổi.</li>
-                        <li><strong>Ưu tiên hội chứng triệu chứng:</strong> hệ thống sẽ xem các dấu hiệu đi kèm như sụt cân, ho kéo dài, đau ngực, sốt về chiều.</li>
-                        <li><strong>Có hỏi lại nếu còn mơ hồ:</strong> ví dụ đau ngực sẽ hỏi thêm có lan tay trái hay không.</li>
-                        <li><strong>Kết luận sau cùng:</strong> chỉ đưa xếp hạng bệnh sau khi đã cân nhắc hồ sơ, mức độ nặng, thời gian và câu trả lời bổ sung.</li>
-                    </ul>
-                </div>
-
                 <div class="selection-panel">
-                    <div>
-                        <h3 class="symptom-title">Chọn thêm các triệu chứng nổi bật nếu có</h3>
-                        <p class="panel-subtext">Phần này giúp bác sĩ AI nhận biết đúng từ khóa ngay cả khi bạn mô tả ngắn.</p>
-                    </div>
-                    <div class="helper-card compact-helper">
-                        <strong>Gợi ý</strong>
-                        <span>Chọn các triệu chứng thật sự đang có. Đừng chọn dàn trải tất cả.</span>
-                    </div>
+                    <h3 class="symptom-title">Chọn thêm các triệu chứng nổi bật nếu có</h3>
                 </div>
 
                 {% for group_name, items in grouped_symptoms.items() %}
@@ -130,26 +104,8 @@
                 {% endfor %}
 
                 <div class="form-actions">
-                    <p class="form-hint">Sau bước này, nếu dữ kiện chưa đủ chắc chắn thì bác sĩ AI sẽ hỏi thêm trước khi kết luận.</p>
+                    <p class="form-hint">Bác sĩ AI sẽ phân tích dữ liệu và hỏi thêm nếu cần thiết.</p>
                     <button class="primary-btn" type="submit">Bắt đầu phân tích hồ sơ</button>
-                </div>
-                <div class="two-columns">
-                    <div class="input-group">
-                        <label>Mức độ triệu chứng:</label>
-                        <select name="severity" class="form-control">
-                            <option value="mild">Nhẹ</option>
-                            <option value="moderate">Vừa</option>
-                            <option value="severe">Nặng (Ảnh hưởng sinh hoạt)</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Thời gian xuất hiện:</label>
-                        <select name="duration" class="form-control">
-                            <option value="1day">Mới 1 ngày</option>
-                            <option value="few_days">Vài ngày</option>
-                            <option value="weeks">Kéo dài nhiều tuần</option>
-                        </select>
-                    </div>
                 </div>
             </form>
         </div>
