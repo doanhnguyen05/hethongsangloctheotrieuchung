@@ -90,16 +90,36 @@
                             <h2 class="section-title">3. Chọn thêm triệu chứng nổi bật</h2>
                             <p class="section-subtitle">Đánh dấu thêm nếu bạn chắc chắn có các dấu hiệu dưới đây.</p>
 
+                            <div class="symptom-toolbar">
+                                <div class="input-group no-top-margin symptom-search-group">
+                                    <label for="symptom-search">Tìm nhanh triệu chứng</label>
+                                    <input
+                                        id="symptom-search"
+                                        type="search"
+                                        placeholder="Ví dụ: đau ngực, ho, khó thở..."
+                                        autocomplete="off"
+                                    >
+                                </div>
+                                <div class="symptom-search-summary" id="symptom-search-summary" aria-live="polite">
+                                    Hiển thị toàn bộ triệu chứng
+                                </div>
+                            </div>
+
+                            <p class="symptom-search-empty" id="symptom-search-empty" hidden>
+                                Không tìm thấy triệu chứng phù hợp. Hãy thử từ khóa ngắn hơn hoặc cách diễn đạt khác.
+                            </p>
+
                             {% for group_name, items in grouped_symptoms.items() %}
-                            <div class="symptom-group">
+                            <div class="symptom-group" data-symptom-group>
                                 <div class="symptom-group-header">
                                     <h4>{{ group_name }}</h4>
-                                    <span>{{ items|length }} triệu chứng</span>
+                                    <span data-group-count>{{ items|length }} triệu chứng</span>
                                 </div>
                                 <div class="symptom-grid">
                                     {% for code, symptom_name in items %}
-                                    <label class="symptom-card">
+                                    <label class="symptom-card" data-symptom-item data-symptom-name="{{ symptom_name|lower }}">
                                         <input type="checkbox" name="symptoms" value="{{ code }}">
+                                        <span class="symptom-checkmark" aria-hidden="true"></span>
                                         <span class="symptom-name">{{ symptom_name }}</span>
                                     </label>
                                     {% endfor %}

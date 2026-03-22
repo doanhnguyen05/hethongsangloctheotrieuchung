@@ -746,6 +746,39 @@ textarea {
   max-width: 280px;
 }
 
+.symptom-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(220px, 1fr);
+  gap: 14px;
+  align-items: end;
+  margin: 18px 0 20px;
+}
+
+.symptom-search-group {
+  margin: 0;
+}
+
+.symptom-search-summary {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d9e7ff;
+  line-height: 1.5;
+}
+
+.symptom-search-empty {
+  margin: -4px 0 18px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+}
+
 /* ========================================
    SYMPTOM GROUP - SÁNG
    ======================================== */
@@ -2052,6 +2085,7 @@ body.result-page.chromium-optimized .result-highlight {
   .patient-summary-grid,
   .two-columns,
   .compact-overview,
+  .symptom-toolbar,
   .compact-two-columns {
     grid-template-columns: 1fr !important;
     gap: 12px;

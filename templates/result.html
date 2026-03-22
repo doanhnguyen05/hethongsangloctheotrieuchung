@@ -162,11 +162,11 @@
         <div class="selected-panel">
           <h3>Danh sách chẩn đoán phân biệt</h3>
           <div class="compact-stack">
-            {% for r in results[:5] %}
+            {% for r in results %}
             <article class="compact-result-card">
               <div class="compact-result-head">
                 <strong>{{ loop.index }}. {{ r.icon }} {{ r.name }}</strong>
-                <span class="rank-chip">{{ r.percent }}%</span>
+                <span class="rank-chip">{{ r.differential_percent }}%</span>
               </div>
 
               <p class="compact-result-text">{{ r.description }}</p>
