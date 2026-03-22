@@ -1970,3 +1970,155 @@ body.result-page.chromium-optimized .result-highlight {
     flex-direction: column;
   }
 }
+
+@media (max-width: 640px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .page-shell {
+    padding: 14px 12px 28px;
+  }
+
+  .result-shell-compact,
+  .container.glass-card,
+  .glass-card.result-shell,
+  .glass-card,
+  .hero-panel {
+    padding: 18px 14px !important;
+    border-radius: 16px;
+  }
+
+  .result-topbar,
+  .section-heading,
+  .topbar,
+  .form-actions,
+  .symptom-group-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .result-actions,
+  .topbar-actions,
+  .hero-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .result-actions .ghost-btn,
+  .topbar-actions .ghost-btn,
+  .topbar-actions .primary-btn,
+  .hero-actions .primary-btn,
+  .hero-actions .ghost-btn,
+  .form-actions .primary-btn {
+    width: 100%;
+  }
+
+  .hero-panel h1,
+  .result-topbar h1,
+  .form-sheet-header h1 {
+    font-size: 1.6rem;
+    line-height: 1.25;
+    margin: 10px 0;
+  }
+
+  .hero-text,
+  .dark-text,
+  .section-subtitle,
+  .form-hint,
+  .compact-result-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .form-sheet-header,
+  .form-sheet-body {
+    padding: 16px 14px;
+  }
+
+  .form-section {
+    padding: 16px 0;
+  }
+
+  .section-title {
+    font-size: 1.02rem;
+  }
+
+  .patient-grid-4,
+  .patient-grid-2,
+  .patient-summary-grid,
+  .two-columns,
+  .compact-overview,
+  .compact-two-columns {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .symptom-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .symptom-card {
+    min-height: 0;
+    padding: 12px;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 46px;
+    font-size: 16px;
+    padding: 12px 13px;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+
+  .selected-tags,
+  .compact-tags {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tag,
+  .alert-flag,
+  .mini-metric {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 12px;
+  }
+
+  .compact-result-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .compact-result-head {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .rank-chip {
+    min-width: 0;
+    width: fit-content;
+  }
+
+  .compact-metrics,
+  .alert-flag-box {
+    gap: 8px;
+  }
+
+  .compact-details {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .feature-list {
+    padding-left: 18px;
+  }
+}

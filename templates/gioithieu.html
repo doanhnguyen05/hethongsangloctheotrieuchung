@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
-        /* CSS BỔ SUNG ĐỂ TRANG GIỚI THIỆU CHUYÊN NGHIỆP HƠN */
         :root {
             --accent-glow: rgba(93, 180, 255, 0.4);
             --card-bg: rgba(255, 255, 255, 0.03);
@@ -113,11 +112,60 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                margin-bottom: 24px;
+                padding: 14px 0 18px;
+            }
+
+            .topbar-actions,
+            .hero-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .topbar-actions a,
+            .hero-actions a {
+                width: 100%;
+            }
+
+            .brand strong {
+                font-size: 1.2rem;
+            }
+
             .landing-grid {
                 grid-template-columns: 1fr;
+                gap: 18px;
+                margin-top: 24px;
             }
+
             .hero-panel {
-                padding: 40px 20px;
+                padding: 32px 18px;
+                text-align: left;
+            }
+
+            .hero-panel h1 {
+                font-size: 1.9rem;
+                line-height: 1.2;
+            }
+
+            .landing-panel {
+                padding: 22px 18px;
+            }
+
+            .landing-item {
+                margin-bottom: 16px;
+                padding-left: 14px;
+            }
+
+            .landing-item:hover {
+                transform: none;
+            }
+
+            .mini-note {
+                margin-top: 12px;
             }
         }
     </style>
