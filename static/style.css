@@ -505,6 +505,14 @@ a {
   perspective: 1200px;
 }
 
+.hero-actions,
+.result-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
 /* ========================================
    STAT BOX - HỘP THỐNG KÊ 3D SÁNG
    ======================================== */
@@ -886,7 +894,7 @@ textarea {
 }
 
 /* Card checked RÕ RÀNG */
-.symptom-card:has(input:checked) {
+.symptom-card.is-checked {
   border-color: rgba(93, 180, 255, 0.8);
   background: linear-gradient(
     145deg,
@@ -1659,5 +1667,306 @@ textarea {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   CHROMIUM PERFORMANCE OVERRIDES
+   ======================================== */
+body.chromium-optimized {
+  background:
+    radial-gradient(circle at top left, rgba(93, 180, 255, 0.12), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(77, 224, 255, 0.1), transparent 30%),
+    linear-gradient(135deg, var(--bg-1), var(--bg-2) 45%, var(--bg-3));
+}
+
+body.chromium-optimized::before,
+body.chromium-optimized::after,
+body.chromium-optimized .glass-card::after,
+body.chromium-optimized .hero-panel::before,
+body.chromium-optimized .hero-panel::after,
+body.chromium-optimized .gallery-3d,
+body.chromium-optimized .gallery-content::before,
+body.chromium-optimized .hero-panel h1,
+body.chromium-optimized .result-topbar h1 {
+  animation: none !important;
+}
+
+body.chromium-optimized::before,
+body.chromium-optimized::after {
+  width: 420px;
+  height: 420px;
+  filter: blur(72px);
+  opacity: 0.18;
+  mix-blend-mode: normal;
+}
+
+body.chromium-optimized .glass-card,
+body.chromium-optimized .hero-panel,
+body.chromium-optimized .stat-box,
+body.chromium-optimized .summary-box,
+body.chromium-optimized .metric-box,
+body.chromium-optimized .helper-card,
+body.chromium-optimized .logic-step,
+body.chromium-optimized .explain-box,
+body.chromium-optimized .criteria-box,
+body.chromium-optimized .selected-panel,
+body.chromium-optimized .symptom-group,
+body.chromium-optimized .card,
+body.chromium-optimized .result-highlight,
+body.chromium-optimized .advice-box,
+body.chromium-optimized .demo-note {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+body.chromium-optimized .hero-panel,
+body.chromium-optimized .glass-card,
+body.chromium-optimized .symptom-card,
+body.chromium-optimized .primary-btn,
+body.chromium-optimized .ghost-btn,
+body.chromium-optimized .stat-box,
+body.chromium-optimized .summary-box,
+body.chromium-optimized .metric-box,
+body.chromium-optimized .helper-card,
+body.chromium-optimized .card {
+  transform: none !important;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+body.chromium-optimized .symptom-card:hover,
+body.chromium-optimized .primary-btn:hover,
+body.chromium-optimized .ghost-btn:hover,
+body.chromium-optimized .stat-box:hover,
+body.chromium-optimized .summary-box:hover,
+body.chromium-optimized .metric-box:hover,
+body.chromium-optimized .helper-card:hover,
+body.chromium-optimized .card:hover,
+body.chromium-optimized .glass-card:hover {
+  transform: none !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(93, 180, 255, 0.18) inset;
+}
+
+body.chromium-optimized .symptom-card {
+  min-height: 66px;
+}
+
+body.chromium-optimized .symptom-card::before,
+body.chromium-optimized .primary-btn::after,
+body.chromium-optimized .ghost-btn::after {
+  display: none;
+}
+
+body.chromium-optimized .symptom-card.is-checked {
+  border-color: rgba(93, 180, 255, 0.55);
+  background: linear-gradient(
+    145deg,
+    rgba(93, 180, 255, 0.24),
+    rgba(157, 141, 255, 0.16)
+  );
+  box-shadow:
+    0 12px 28px rgba(93, 180, 255, 0.18),
+    0 0 0 1px rgba(93, 180, 255, 0.18) inset;
+}
+
+/* ========================================
+   COMPACT RESULT PAGE
+   ======================================== */
+body.result-page::before,
+body.result-page::after {
+  animation: none !important;
+  opacity: 0.14;
+  filter: blur(80px);
+}
+
+body.result-page .glass-card::after,
+body.result-page .glass-card::before,
+body.result-page .hero-panel::before,
+body.result-page .hero-panel::after,
+body.result-page .score-circle {
+  display: none !important;
+}
+
+body.result-page .result-shell-compact {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.result-page .card,
+body.result-page .selected-panel,
+body.result-page .result-highlight,
+body.result-page .summary-box,
+body.result-page .metric-box,
+body.result-page .explain-box,
+body.result-page .logic-panel,
+body.result-page .formula-box,
+body.result-page .advice-box,
+body.result-page .demo-note,
+body.result-page .compact-result-card {
+  transform: none !important;
+  animation: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.result-shell-compact .summary-panel {
+  margin: 18px 0;
+}
+
+.compact-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 22px;
+}
+
+.compact-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.compact-result-card {
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 20, 36, 0.58);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.compact-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.rank-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(93, 180, 255, 0.16);
+  border: 1px solid rgba(93, 180, 255, 0.2);
+  color: #fff;
+  font-weight: 700;
+}
+
+.compact-result-text,
+.compact-details p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.compact-question-title {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9fc3f2;
+}
+
+.compact-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.mini-metric {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef6ff;
+  font-size: 0.92rem;
+}
+
+.compact-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.compact-two-columns h4 {
+  margin: 0 0 10px;
+  font-size: 0.98rem;
+}
+
+.compact-list {
+  margin: 0;
+}
+
+.compact-tags {
+  grid-template-columns: repeat(auto-fit, minmax(170px, max-content));
+}
+
+.compact-details {
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 14px;
+}
+
+.compact-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #d9ebff;
+}
+
+.compact-details p + p {
+  margin-top: 10px;
+}
+
+body.result-page.chromium-optimized {
+  background:
+    linear-gradient(180deg, #0b1422 0%, #102038 100%);
+}
+
+body.result-page.chromium-optimized::before,
+body.result-page.chromium-optimized::after {
+  width: 260px;
+  height: 260px;
+  filter: blur(46px);
+  opacity: 0.08;
+}
+
+body.result-page.chromium-optimized .glass-card,
+body.result-page.chromium-optimized .compact-result-card,
+body.result-page.chromium-optimized .summary-box,
+body.result-page.chromium-optimized .metric-box,
+body.result-page.chromium-optimized .selected-panel,
+body.result-page.chromium-optimized .result-highlight {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 768px) {
+  .compact-overview,
+  .compact-two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-result-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

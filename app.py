@@ -5,6 +5,7 @@ import os
 
 app = Flask(__name__)
 
+
 def extract_symptoms_from_text(symptom_text):
     symptom_text_normalized = f" {(symptom_text or '').strip().lower()} "
     matched = []
@@ -16,6 +17,7 @@ def extract_symptoms_from_text(symptom_text):
                 break
     return list(dict.fromkeys(matched))
 
+
 def build_followup_questions(selected_symptoms):
     questions = []
     selected_set = set(selected_symptoms)
@@ -23,6 +25,7 @@ def build_followup_questions(selected_symptoms):
         if any(code in selected_set for code in rule["trigger_symptoms"]):
             questions.append(rule)
     return questions
+
 
 def parse_followup_answers(form_data, questions):
     extra_symptoms = []
@@ -41,13 +44,21 @@ def parse_followup_answers(form_data, questions):
                 break
     return list(dict.fromkeys(extra_symptoms)), adjustments, answered
 
-@app.route('/', methods=['GET'])
+
+@app.route("/", methods=["GET"])
+@app.route("/gioi-thieu", methods=["GET"])
+def gioi_thieu():
+    return render_template("gioithieu.html")
+
+
+@app.route("/sang-loc", methods=["GET"])
 def index():
     grouped_symptoms = {
         group_name: [(code, SYMPTOMS[code]) for code in codes]
         for group_name, codes in SYMPTOM_GROUPS.items()
     }
     return render_template("index.html", grouped_symptoms=grouped_symptoms, stage="intake")
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -71,16 +82,57 @@ def predict():
     if stage == "initial":
         followup_questions = build_followup_questions(base_symptoms)
         if followup_questions:
-            preliminary_results = infer_disease(base_symptoms, age=age, gender=gender, severity=severity, duration=duration, followup_adjustments={})
-            return render_template("result.html", stage="followup", name=name, age=age, gender=gender, severity=severity, duration=duration, symptom_text=symptom_text, selected_symptoms=[SYMPTOMS[code] for code in base_symptoms if code in SYMPTOMS], selected_codes=base_symptoms, symptom_count=len(base_symptoms), followup_questions=followup_questions, preliminary_results=preliminary_results[:3])
+            preliminary_results = infer_disease(
+                base_symptoms,
+                age=age,
+                gender=gender,
+                severity=severity,
+                duration=duration,
+                followup_adjustments={},
+            )
+            return render_template(
+                "result.html",
+                stage="followup",
+                name=name,
+                age=age,
+                gender=gender,
+                severity=severity,
+                duration=duration,
+                symptom_text=symptom_text,
+                selected_symptoms=[SYMPTOMS[code] for code in base_symptoms if code in SYMPTOMS],
+                selected_codes=base_symptoms,
+                symptom_count=len(base_symptoms),
+                followup_questions=followup_questions,
+                preliminary_results=preliminary_results[:3],
+            )
 
-    # Xử lý kết quả cuối cùng
     followup_questions = build_followup_questions(base_symptoms)
     extra_symptoms, adjustments, answered_followups = parse_followup_answers(request.form, followup_questions)
     final_symptoms = list(dict.fromkeys(base_symptoms + extra_symptoms))
-    results = infer_disease(final_symptoms, age=age, gender=gender, severity=severity, duration=duration, followup_adjustments=adjustments)
+    results = infer_disease(
+        final_symptoms,
+        age=age,
+        gender=gender,
+        severity=severity,
+        duration=duration,
+        followup_adjustments=adjustments,
+    )
 
-    return render_template("result.html", stage="final", name=name, age=age, gender=gender, severity=severity, duration=duration, symptom_text=symptom_text, results=results, selected_symptoms=[SYMPTOMS[code] for code in final_symptoms if code in SYMPTOMS], symptom_count=len(final_symptoms), answered_followups=answered_followups)
+    return render_template(
+        "result.html",
+        stage="final",
+        name=name,
+        age=age,
+        gender=gender,
+        severity=severity,
+        duration=duration,
+        symptom_text=symptom_text,
+        results=results,
+        selected_symptoms=[SYMPTOMS[code] for code in final_symptoms if code in SYMPTOMS],
+        symptom_count=len(final_symptoms),
+        answered_followups=answered_followups,
+    )
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))

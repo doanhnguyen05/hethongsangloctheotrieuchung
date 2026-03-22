@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
+
 """
 Knowledge base mở rộng cho hệ thống suy luận bệnh.
-- Giữ nguyên các hằng số mà app.py đang import.
 - Tổng số bệnh: 159
 - Số bệnh bổ sung thêm: 119
 """

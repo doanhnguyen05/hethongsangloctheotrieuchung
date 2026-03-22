@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giới thiệu | MedAI Screening</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style>
+        /* CSS BỔ SUNG ĐỂ TRANG GIỚI THIỆU CHUYÊN NGHIỆP HƠN */
+        :root {
+            --accent-glow: rgba(93, 180, 255, 0.4);
+            --card-bg: rgba(255, 255, 255, 0.03);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .brand strong {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #4de0ff, #9d8dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .brand span {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        /* Hero Section Tối ưu */
+        .hero-panel {
+            text-align: center;
+            padding: 80px 40px;
+            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 70%);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        /* Grid Layout cho nội dung */
+        .landing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .landing-panel {
+            padding: 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Danh sách mục giới thiệu */
+        .landing-list {
+            margin-top: 25px;
+        }
+
+        .landing-item {
+            margin-bottom: 25px;
+            padding-left: 20px;
+            border-left: 3px solid #4de0ff;
+            transition: all 0.3s ease;
+        }
+
+        .landing-item:hover {
+            border-left-color: #9d8dff;
+            transform: translateX(10px);
+        }
+
+        .landing-item strong {
+            display: block;
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-size: 0.95rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .mini-note {
+            margin-top: auto;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: var(--warning);
+        }
+
+        code {
+            background: #2d2d2d;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ff7b91;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .landing-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-panel {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <div class="topbar">
+            <div class="brand">
+                <strong>MedAI Screening</strong>
+                <span>Hệ chuyên gia chẩn đoán y khoa học thuật</span>
+            </div>
+            <div class="topbar-actions">
+                <a class="primary-btn" href="{{ url_for('index') }}">Vào hệ thống</a>
+            </div>
+        </div>
+
+        <section class="hero-panel glass-card">
+            <div class="hero-badge">Đồ án Trí tuệ nhân tạo</div>
+            <h1>Mô phỏng Hệ Chuyên Gia bằng Biểu diễn Tri thức & Suy diễn</h1>
+            <p class="hero-text">
+                Ứng dụng minh họa cách AI tiếp nhận triệu chứng (Fact), áp dụng luật sản xuất (Rules), 
+                kết hợp suy diễn tiến/lùi và lập luận xác suất Bayes để hỗ trợ chẩn đoán phân biệt.
+            </p>
+            <div class="hero-actions">
+                <a class="primary-btn" href="{{ url_for('index') }}">Bắt đầu trải nghiệm</a>
+                <a class="ghost-btn" href="#tong-quan">Tìm hiểu kỹ thuật</a>
+            </div>
+        </section>
+
+        <div class="landing-grid" id="tong-quan">
+            <div class="glass-card landing-panel">
+                <p class="eyebrow">Quy trình xử lý</p>
+                <h2>Luồng tương tác hệ thống</h2>
+                <div class="landing-list">
+                    <div class="landing-item">
+                        <strong>Tiếp nhận dữ liệu</strong>
+                        <span class="tagline">Xử lý ngôn ngữ tự nhiên cơ bản để trích xuất triệu chứng từ câu kể của người bệnh.</span>
+                    </div>
+                    <div class="landing-item">
+                        <strong>Kích hoạt luật (Forward Chaining)</strong>
+                        <span class="tagline">Duyệt kho tri thức 150+ bệnh để tìm các khớp nối giữa triệu chứng và bệnh lý.</span>
+                    </div>
+                    <div class="landing-item">
+                        <strong>Hỏi thêm (Backward Chaining)</strong>
+                        <span class="tagline">Bác sĩ AI tự động đặt câu hỏi cho các triệu chứng cốt lõi còn thiếu để xác minh giả thuyết.</span>
+                    </div>
+                    <div class="landing-item">
+                        <strong>Kết luận & Giải thích</strong>
+                        <span class="tagline">Xếp hạng bệnh dựa trên xác suất và giải thích rõ ràng "Tại sao AI nghĩ như vậy".</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card landing-panel">
+                <p class="eyebrow">Cơ sở lý thuyết</p>
+                <h2>Kỹ thuật AI áp dụng</h2>
+                <div class="landing-list">
+                    <div class="landing-item">
+                        <strong>Logic & Biểu diễn tri thức</strong>
+                        <span class="tagline">Sử dụng Logic mệnh đề và Logic vị từ cấp 1 để mô hình hóa triệu chứng, tuổi và giới tính bệnh nhân.</span>
+                    </div>
+                    <div class="landing-item">
+                        <strong>Hệ luật sản xuất (Production Rules)</strong>
+                        <span class="tagline">Tri thức được lưu trữ dưới dạng IF-THEN với các trọng số (Weights) và mức độ ưu tiên (Priority).</span>
+                    </div>
+                    <div class="landing-item">
+                        <strong>Xử lý sự không chắc chắn</strong>
+                        <span class="tagline">Áp dụng lớp Bayes Proxy để tính toán mức độ nghi ngờ khi dữ liệu người dùng cung cấp còn mơ hồ.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>

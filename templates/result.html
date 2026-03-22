@@ -9,20 +9,22 @@
       href="{{ url_for('static', filename='style.css') }}"
     />
   </head>
-  <body>
+  <body class="result-page">
     <div class="page-shell">
-      <div class="container glass-card result-shell">
+      <div class="result-shell result-shell-compact">
         <div class="result-topbar">
           <div>
             <p class="eyebrow">Kết quả phân tích</p>
             <h1>Hồ sơ sàng lọc của {{ name }}</h1>
             <p class="hero-text dark-text">
-              Hệ thống đang mô phỏng mô hình AI y khoa có giải thích, suy luận
-              theo luật, trọng số, tuổi, giới tính, mức độ triệu chứng, thời
-              gian bệnh và phần hỏi thêm.
+              Kết quả được trình bày theo dạng ngắn gọn để dễ đọc, dễ cuộn và
+              mượt hơn trên Chrome, Cốc Cốc và các trình duyệt Chromium.
             </p>
           </div>
-          <a class="ghost-btn" href="/">Sàng lọc lại</a>
+          <div class="result-actions">
+            <a class="ghost-btn" href="{{ url_for('gioi_thieu') }}">Trang giới thiệu</a>
+            <a class="ghost-btn" href="{{ url_for('index') }}">Sàng lọc lại</a>
+          </div>
         </div>
 
         <div class="summary-panel patient-summary-grid">
@@ -37,12 +39,11 @@
           <div class="summary-box">
             <span>Giới tính</span>
             <strong>
-              {% if gender == 'male' %}Nam {% elif gender == 'female' %}Nữ {%
-              else %}Khác / Chưa xác định{% endif %}
+              {% if gender == 'male' %}Nam{% elif gender == 'female' %}Nữ{% else %}Khác / Chưa xác định{% endif %}
             </strong>
           </div>
           <div class="summary-box">
-            <span>Số triệu chứng đã chọn</span>
+            <span>Số triệu chứng</span>
             <strong>{{ symptom_count }}</strong>
           </div>
         </div>
@@ -50,58 +51,43 @@
         <div class="selected-panel">
           <h3>Triệu chứng đầu vào</h3>
           {% if selected_symptoms %}
-          <div class="selected-tags">
+          <div class="selected-tags compact-tags">
             {% for symptom in selected_symptoms %}
             <span class="tag">{{ symptom }}</span>
             {% endfor %}
           </div>
           {% else %}
-          <p class="empty-text">
-            Bạn chưa chọn triệu chứng nào nên hệ thống chưa thể phân tích.
-          </p>
+          <p class="empty-text">Chưa có dữ liệu triệu chứng để phân tích.</p>
           {% endif %}
         </div>
 
         {% if stage == 'followup' %}
         <div class="result-highlight">
-          <h2>Bác sĩ AI cần hỏi thêm trước khi kết luận</h2>
+          <h2>Cần hỏi thêm trước khi kết luận</h2>
           <p>
-            Dữ kiện ban đầu đã gợi ý một số hướng bệnh, nhưng vẫn còn điểm mơ
-            hồ. Hãy trả lời thêm các câu hỏi dưới đây để hệ thống đưa ra kết
-            luận hợp lý hơn.
+            Dữ kiện hiện tại đã gợi ý một số hướng bệnh, nhưng vẫn còn điểm chưa
+            đủ rõ để tách bạch các khả năng gần nhau.
           </p>
         </div>
 
         {% if preliminary_results %}
-        <div class="logic-panel">
-          <h3>Định hướng nghi ngờ ban đầu</h3>
-          <div class="logic-steps">
-            {% for r in preliminary_results %}
-            <div class="logic-step">
+        <div class="compact-stack">
+          {% for r in preliminary_results %}
+          <div class="compact-result-card">
+            <div class="compact-result-head">
               <strong>{{ r.icon }} {{ r.name }}</strong>
-              <span>Mức nghi ngờ tạm thời {{ r.percent }}%</span>
+              <span class="rank-chip">{{ r.percent }}%</span>
             </div>
-            {% endfor %}
+            <p class="compact-result-text">{{ r.description }}</p>
           </div>
-          <div class="formula-box">
-            <h4>Vì sao chưa kết luận ngay?</h4>
-            <p>
-              Hệ thống đang áp dụng cách suy luận giống hỏi bệnh lâm sàng: cùng
-              một triệu chứng có thể gặp ở nhiều bệnh khác nhau, nên cần hỏi
-              thêm để tách bạch các khả năng gần giống nhau.
-            </p>
-          </div>
+          {% endfor %}
         </div>
         {% endif %}
 
         <form method="post" action="/predict" class="followup-form">
           <input type="hidden" name="stage" value="final" />
           <input type="hidden" name="name" value="{{ name }}" />
-          <input
-            type="hidden"
-            name="age"
-            value="{{ age if age is not none else '' }}"
-          />
+          <input type="hidden" name="age" value="{{ age if age is not none else '' }}" />
           <input type="hidden" name="gender" value="{{ gender }}" />
           <input type="hidden" name="severity" value="{{ severity }}" />
           <input type="hidden" name="duration" value="{{ duration }}" />
@@ -111,26 +97,18 @@
           {% endfor %}
 
           <div class="selected-panel">
-            <h3>Câu hỏi bác sĩ AI cần làm rõ</h3>
-            <div class="two-columns">
+            <h3>Câu hỏi cần làm rõ</h3>
+            <div class="compact-stack">
               {% for q in followup_questions %}
-              <div class="explain-box secondary-box">
-                <h3>Câu {{ loop.index }}</h3>
-                <p>{{ q.question }}</p>
+              <div class="compact-result-card">
+                <p class="compact-question-title">Câu {{ loop.index }}</p>
+                <p class="compact-result-text">{{ q.question }}</p>
                 <div class="input-group no-top-margin">
-                  <label for="followup_{{ q.id }}"
-                    >Chọn câu trả lời phù hợp nhất</label
-                  >
-                  <select
-                    id="followup_{{ q.id }}"
-                    name="followup_{{ q.id }}"
-                    required
-                  >
+                  <label for="followup_{{ q.id }}">Chọn câu trả lời phù hợp nhất</label>
+                  <select id="followup_{{ q.id }}" name="followup_{{ q.id }}" required>
                     <option value="">-- Chọn câu trả lời --</option>
                     {% for option in q.options %}
-                    <option value="{{ option.value }}">
-                      {{ option.label }}
-                    </option>
+                    <option value="{{ option.value }}">{{ option.label }}</option>
                     {% endfor %}
                   </select>
                 </div>
@@ -140,291 +118,119 @@
           </div>
 
           <div class="form-actions">
-            <p class="form-hint">
-              Sau khi trả lời xong, hệ thống sẽ tổng hợp lại toàn bộ hồ sơ và
-              đưa ra bảng xếp hạng nghi ngờ cuối cùng.
-            </p>
-            <button class="primary-btn" type="submit">
-              Xem kết luận cuối cùng
-            </button>
+            <p class="form-hint">Sau bước này hệ thống sẽ tổng hợp lại toàn bộ hồ sơ và tính kết quả cuối cùng.</p>
+            <button class="primary-btn" type="submit">Xem kết luận cuối cùng</button>
           </div>
         </form>
 
         {% elif results %}
         <div class="result-highlight">
-          <h2>
-            Chẩn đoán nghi ngờ cao nhất: {{ results[0].icon }} {{
-            results[0].name }}
-          </h2>
+          <h2>Khả năng cao nhất: {{ results[0].icon }} {{ results[0].name }}</h2>
           <p>{{ results[0].description }}</p>
         </div>
 
-        <div class="card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Chẩn đoán phân biệt</p>
-              <h2>Các khả năng bệnh đang được hệ thống cân nhắc</h2>
-            </div>
-            <span class="guide-chip">Top {{ results|length }} hướng bệnh</span>
+        <div class="compact-overview">
+          <div class="metric-box">
+            <span>Kết quả đứng đầu</span>
+            <strong>{{ results[0].name }}</strong>
           </div>
-
-          <div class="explain-box secondary-box">
-            <p style="margin: 0">
-              <strong>Chẩn đoán phân biệt:</strong>
-              {% for r in results[:5] %} {{ r.name }} {{ r.percent }}%{% if not
-              loop.last %} • {% endif %} {% endfor %}
-            </p>
+          <div class="metric-box">
+            <span>Tỷ lệ nổi bật nhất</span>
+            <strong>{{ results[0].percent }}%</strong>
           </div>
-
-          <div class="metric-grid metric-grid-large">
-            <div class="metric-box">
-              <span>Bệnh nghi ngờ cao nhất</span>
-              <strong>{{ results[0].name }}</strong>
-            </div>
-            <div class="metric-box">
-              <span>Tỷ lệ cao nhất</span>
-              <strong>{{ results[0].percent }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Số hướng bệnh đang so sánh</span>
-              <strong>{{ results|length }}</strong>
-            </div>
-          </div>
-
-          <div class="selected-tags" style="margin-top: 18px">
-            {% for r in results[:5] %}
-            <span class="tag">
-              {{ loop.index }}. {{ r.icon }} {{ r.name }} - {{ r.percent }}%
-            </span>
-            {% endfor %}
+          <div class="metric-box">
+            <span>Số hướng bệnh đang xét</span>
+            <strong>{{ results|length }}</strong>
           </div>
         </div>
 
         {% if answered_followups %}
         <div class="selected-panel">
           <h3>Tóm tắt phần hỏi thêm</h3>
-          <div class="two-columns two-columns-tight">
+          <div class="compact-stack">
             {% for item in answered_followups %}
-            <div class="explain-box secondary-box">
-              <h3>Câu hỏi {{ loop.index }}</h3>
-              <p><strong>{{ item.question }}</strong></p>
-              <p>{{ item.answer }}</p>
+            <div class="compact-result-card">
+              <p class="compact-question-title">Câu hỏi {{ loop.index }}</p>
+              <p class="compact-result-text"><strong>{{ item.question }}</strong></p>
+              <p class="compact-result-text">{{ item.answer }}</p>
             </div>
             {% endfor %}
           </div>
         </div>
         {% endif %}
 
-        <div class="logic-panel">
-          <h3>Logic tính tỷ lệ % mắc bệnh</h3>
-          <div class="logic-steps">
-            <div class="logic-step">
-              <strong>50%</strong>
-              <span>Độ phủ triệu chứng trong hồ sơ bệnh</span>
-            </div>
-            <div class="logic-step">
-              <strong>20%</strong>
-              <span>Mức độ tập trung của triệu chứng đã nhập</span>
-            </div>
-            <div class="logic-step">
-              <strong>30%</strong>
-              <span>Tỷ lệ khớp triệu chứng cốt lõi</span>
-            </div>
-          </div>
-          <div class="formula-box">
-            <h4>Công thức mô phỏng AI</h4>
-            <p>
-              <strong>Confidence Score</strong> = (Coverage × 0.50) + (Precision
-              × 0.20) + (Core Match × 0.30) + Bonus + Điều chỉnh tuổi + Điều
-              chỉnh giới tính + Hiệu chỉnh follow-up
-            </p>
-            <p>
-              Sau khi tính điểm thô cho từng bệnh, hệ thống chuẩn hóa lại thành
-              <strong>tỷ lệ chẩn đoán phân biệt</strong> để hiện kiểu: viêm phổi
-              15% • COVID-19 10% • viêm họng 20%.
-            </p>
-          </div>
-        </div>
+        <div class="selected-panel">
+          <h3>Danh sách chẩn đoán phân biệt</h3>
+          <div class="compact-stack">
+            {% for r in results[:5] %}
+            <article class="compact-result-card">
+              <div class="compact-result-head">
+                <strong>{{ loop.index }}. {{ r.icon }} {{ r.name }}</strong>
+                <span class="rank-chip">{{ r.percent }}%</span>
+              </div>
 
-        {% for r in results %}
-        <div class="card medical-card theme-{{ r.theme }}">
-          <div class="card-header">
-            <div>
-              <div class="disease-title-row">
-                <span class="disease-icon">{{ r.icon }}</span>
-                <h2>{{ r.name }}</h2>
-              </div>
-              <p class="disease-desc">{{ r.description }}</p>
-              <span class="disease-group-chip">{{ r.group }}</span>
-            </div>
-            <div class="score-circle">
-              <span>{{ r.percent }}%</span>
-              <small>Khả năng</small>
-            </div>
-          </div>
+              <p class="compact-result-text">{{ r.description }}</p>
 
-          <div class="progress-group">
-            <div>
-              <div class="progress-label-row">
-                <span>Tỷ lệ trong chẩn đoán phân biệt</span>
-                <strong>{{ r.percent }}%</strong>
+              <div class="compact-metrics">
+                <span class="mini-metric">Khớp core: {{ r.core_percent }}%</span>
+                <span class="mini-metric">Độ phủ: {{ r.coverage_percent }}%</span>
+                <span class="mini-metric">Tập trung: {{ r.precision_percent }}%</span>
+                <span class="mini-metric">Cạnh tranh: {{ r.competitor_level }}</span>
               </div>
-              <div class="progress-track">
-                <div class="progress-fill" style="--w: {{ r.percent }}%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="progress-label-row">
-                <span>Mức tương quan so với bệnh đứng đầu</span>
-                <strong>{{ r.relative_level }}%</strong>
-              </div>
-              <div class="progress-track soft">
-                <div
-                  class="progress-fill soft"
-                  style="--w: {{ r.relative_level }}%"
-                ></div>
-              </div>
-            </div>
-          </div>
 
-          <div class="two-columns two-columns-tight">
-            <div class="explain-box secondary-box">
-              <h3>Xếp hạng nghi ngờ</h3>
-              <p>
-                Top {{ loop.index }} trong danh sách bệnh hệ thống đang cân
-                nhắc.
-              </p>
-            </div>
-            <div class="explain-box secondary-box">
-              <h3>Mức độ cạnh tranh</h3>
-              <p>
-                {{ r.competitor_level if r.competitor_level is defined else
-                'Đang được so sánh với bệnh đứng đầu' }}
-              </p>
-            </div>
-          </div>
+              {% if r.flags %}
+              <div class="alert-flag-box">
+                {% for flag in r.flags %}
+                <span class="alert-flag">{{ flag }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
 
-          {% if r.flags %}
-          <div class="alert-flag-box">
-            {% for flag in r.flags %}
-            <span class="alert-flag">{{ flag }}</span>
+              <div class="compact-two-columns">
+                <div>
+                  <h4>Triệu chứng khớp</h4>
+                  {% if r.matched %}
+                  <ul class="feature-list compact-list">
+                    {% for s in r.matched[:6] %}
+                    <li>{{ s }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="empty-text">Chưa có triệu chứng khớp rõ.</p>
+                  {% endif %}
+                </div>
+                <div>
+                  <h4>Triệu chứng cốt lõi còn thiếu</h4>
+                  {% if r.missing_core %}
+                  <ul class="feature-list compact-list muted-list">
+                    {% for s in r.missing_core %}
+                    <li>{{ s }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="all-good">Đã khớp toàn bộ core symptom.</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <details class="compact-details">
+                <p class="compact-result-text"><strong>Khuyến nghị:</strong> {{ r.advice }}</p>
+              </details>
+            </article>
             {% endfor %}
           </div>
-          {% endif %}
-
-          <div class="metric-grid metric-grid-large">
-            <div class="metric-box">
-              <span>Độ phủ triệu chứng</span>
-              <strong>{{ r.coverage_percent }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Mức khớp triệu chứng đã chọn</span>
-              <strong>{{ r.precision_percent }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Khớp triệu chứng cốt lõi</span>
-              <strong>{{ r.core_percent }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Tỷ trọng trong nhóm chẩn đoán</span>
-              <strong>
-                {% if r.differential_percent is defined %} {{
-                r.differential_percent }}% {% else %} {{ r.percent }}% {% endif
-                %}
-              </strong>
-            </div>
-            <div class="metric-box">
-              <span>Điều chỉnh tuổi</span>
-              <strong>{{ r.formula.age_adjustment }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Điều chỉnh giới tính</span>
-              <strong>{{ r.formula.gender_adjustment }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Bonus logic</span>
-              <strong>{{ r.formula.bonus }}%</strong>
-            </div>
-            <div class="metric-box">
-              <span>Điều chỉnh follow-up</span>
-              <strong>{{ r.formula.doctor_adjustment }}%</strong>
-            </div>
-          </div>
-
-          <div class="explain-box">
-            <h3>Nhận định của bác sĩ AI</h3>
-            <p>{{ r.doctor_summary }}</p>
-          </div>
-
-          <div class="explain-box">
-            <h3>Giải thích suy luận</h3>
-            <p>{{ r.explanation }}</p>
-          </div>
-
-          <div class="two-columns two-columns-tight">
-            <div>
-              <h3>Triệu chứng khớp</h3>
-              {% if r.matched %}
-              <ul class="feature-list">
-                {% for s in r.matched %}
-                <li>{{ s }}</li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="empty-text">Chưa có triệu chứng nào khớp rõ rệt.</p>
-              {% endif %}
-            </div>
-            <div>
-              <h3>Triệu chứng cốt lõi còn thiếu</h3>
-              {% if r.missing_core %}
-              <ul class="feature-list muted-list">
-                {% for s in r.missing_core %}
-                <li>{{ s }}</li>
-                {% endfor %}
-              </ul>
-              {% else %}
-              <p class="all-good">Đã khớp toàn bộ triệu chứng cốt lõi.</p>
-              {% endif %}
-            </div>
-          </div>
-
-          <div class="two-columns two-columns-tight note-columns">
-            <div class="explain-box secondary-box">
-              <h3>Đánh giá theo tuổi</h3>
-              <p>{{ r.age_note }}</p>
-            </div>
-            <div class="explain-box secondary-box">
-              <h3>Đánh giá theo giới tính</h3>
-              <p>{{ r.gender_note }}</p>
-            </div>
-          </div>
-
-          <div class="advice-box">
-            <strong>Khuyến nghị:</strong>
-            <span>{{ r.advice }}</span>
-          </div>
-
-          <div class="demo-note">
-            <strong>Lưu ý học thuật:</strong>
-            <span>
-              Đây là mô hình demo hệ chuyên gia có trọng số để phục vụ học tập
-              và thuyết trình, không thay thế chẩn đoán y khoa thực tế.
-            </span>
-          </div>
         </div>
-        {% endfor %} {% else %}
+        {% else %}
         <div class="empty-state">
           <h2>Chưa đủ căn cứ để xếp hạng bệnh</h2>
           <p>
             Hệ thống chưa tìm được mức tương quan đủ rõ để tạo bảng chẩn đoán
-            phân biệt. Điều này thường xảy ra khi triệu chứng còn quá ít, còn
-            chung chung hoặc chưa đủ đặc hiệu. Hãy quay lại và bổ sung thêm mô
-            tả chi tiết, mức độ, thời gian xuất hiện hoặc chọn thêm triệu chứng
-            nổi bật để hệ thống suy luận chính xác hơn.
+            phân biệt. Hãy quay lại và bổ sung thêm mô tả hoặc triệu chứng nổi bật.
           </p>
         </div>
         {% endif %}
       </div>
     </div>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
   </body>
 </html>
