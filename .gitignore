@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+
+# SQLite database files
+*.db
+
+# Instance and local runtime files
+instance/
+
+# MacOS files
+.DS_Store
+
+# Documents and exports
+*.docx
+
+# Editor folders
+.vscode/
