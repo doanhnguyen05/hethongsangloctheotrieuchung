@@ -9,8 +9,12 @@
 <body>
     <div class="page-shell">
         <div class="topbar">
-            <div class="topbar-actions">
+            <div class="topbar-actions topbar-actions-left">
                 <a class="ghost-btn" href="{{ url_for('gioi_thieu') }}">Trang giới thiệu</a>
+            </div>
+            <div class="topbar-actions topbar-actions-right">
+                <a class="ghost-btn" href="{{ url_for('chat') }}">Chế độ chat</a>
+                <a class="ghost-btn" href="{{ url_for('history') }}">Lịch sử</a>
             </div>
         </div>
 

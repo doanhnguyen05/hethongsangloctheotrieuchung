@@ -23,6 +23,7 @@
           </div>
           <div class="result-actions">
             <a class="ghost-btn" href="{{ url_for('gioi_thieu') }}">Trang giới thiệu</a>
+            <a class="ghost-btn" href="{{ url_for('history') }}">Lịch sử</a>
             <a class="ghost-btn" href="{{ url_for('index') }}">Sàng lọc lại</a>
           </div>
         </div>
@@ -127,6 +128,11 @@
         <div class="result-highlight">
           <h2>Khả năng cao nhất: {{ results[0].icon }} {{ results[0].name }}</h2>
           <p>{{ results[0].description }}</p>
+          {% if screening_id %}
+          <p class="compact-result-text">
+            <a class="ghost-btn" href="{{ url_for('history_detail', screening_id=screening_id) }}">Xem chi tiết phiên sàng lọc</a>
+          </p>
+          {% endif %}
         </div>
 
         <div class="compact-overview">

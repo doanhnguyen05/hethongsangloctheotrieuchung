@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết sàng lọc #{{ screening.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body class="result-page">
+    <div class="page-shell">
+      <div class="result-shell result-shell-compact">
+        <div class="result-topbar">
+          <div>
+            <p class="eyebrow">Chi tiết</p>
+            <h1>Phiên sàng lọc #{{ screening.id }}</h1>
+            <p class="hero-text dark-text">{{ screening.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+          </div>
+          <div class="result-actions">
+            <a class="ghost-btn" href="{{ url_for('history') }}">Quay lại lịch sử</a>
+            <a class="ghost-btn" href="{{ url_for('index') }}">Sàng lọc mới</a>
+          </div>
+        </div>
+
+        <div class="summary-panel patient-summary-grid">
+          <div class="summary-box">
+            <span>Người bệnh</span>
+            <strong>{{ screening.patient.name }}</strong>
+          </div>
+          <div class="summary-box">
+            <span>Tuổi</span>
+            <strong>{{ screening.patient.age if screening.patient.age is not none else 'Chưa có' }}</strong>
+          </div>
+          <div class="summary-box">
+            <span>Giới tính</span>
+            <strong>{{ screening.patient.gender }}</strong>
+          </div>
+          <div class="summary-box">
+            <span>Số triệu chứng</span>
+            <strong>{{ screening.symptom_count }}</strong>
+          </div>
+        </div>
+
+        {% if screening.selected_symptoms %}
+        <div class="selected-panel">
+          <h3>Triệu chứng đã lưu</h3>
+          <div class="selected-tags compact-tags">
+            {% for symptom in screening.selected_symptoms %}
+            <span class="tag">{{ symptom }}</span>
+            {% endfor %}
+          </div>
+          {% if screening.symptom_text %}
+          <p class="compact-result-text" style="margin-top: 14px;">Mô tả tự nhiên: {{ screening.symptom_text }}</p>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if screening.followup_answers %}
+        <div class="selected-panel">
+          <h3>Câu trả lời follow-up</h3>
+          <div class="compact-stack">
+            {% for question, answer in screening.followup_answers.items() %}
+            <div class="compact-result-card">
+              <p class="compact-result-text"><strong>{{ question }}</strong></p>
+              <p class="compact-result-text">{{ answer }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="selected-panel">
+          <h3>Kết quả đã lưu</h3>
+          <div class="compact-stack">
+            {% for r in results %}
+            <article class="compact-result-card">
+              <div class="compact-result-head">
+                <strong>{{ r.rank }}. {{ r.icon }} {{ r.disease_name }}</strong>
+                <span class="rank-chip">{{ r.differential_percent }}%</span>
+              </div>
+              <p class="compact-result-text">{{ r.description }}</p>
+              <div class="compact-metrics">
+                <span class="mini-metric">Core: {{ r.core_percent }}%</span>
+                <span class="mini-metric">Độ phủ: {{ r.coverage_percent }}%</span>
+                <span class="mini-metric">Tập trung: {{ r.precision_percent }}%</span>
+                <span class="mini-metric">Bayes: {{ r.bayes_percent }}%</span>
+              </div>
+              {% if r.flags %}
+              <div class="alert-flag-box">
+                {% for flag in r.flags %}
+                <span class="alert-flag">{{ flag }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+              {% if r.reasoning_steps %}
+              <details class="compact-details">
+                <summary>Xem suy luận AI</summary>
+                {% for step in r.reasoning_steps %}
+                <p>{{ loop.index }}. {{ step }}</p>
+                {% endfor %}
+              </details>
+              {% endif %}
+              <p class="compact-result-text"><strong>Khuyến nghị:</strong> {{ r.advice }}</p>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lịch sử sàng lọc | MedAI Screening</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body class="result-page">
+    <div class="page-shell">
+      <div class="result-shell result-shell-compact">
+        <div class="result-topbar">
+          <div>
+            <p class="eyebrow">Lịch sử</p>
+            <h1>Các phiên sàng lọc đã lưu</h1>
+            <p class="hero-text dark-text">Xem lại các kết quả trước đó và mở chi tiết từng phiên.</p>
+          </div>
+          <div class="result-actions">
+            <a class="ghost-btn" href="{{ url_for('index') }}">Sàng lọc mới</a>
+            <a class="ghost-btn" href="{{ url_for('chat') }}">Chế độ chat</a>
+          </div>
+        </div>
+
+        {% if screenings.items %}
+        <div class="compact-stack">
+          {% for s in screenings.items %}
+          <article class="compact-result-card">
+            <div class="compact-result-head">
+              <strong>{{ s.patient.name }}{% if s.patient.age %} - {{ s.patient.age }} tuổi{% endif %}</strong>
+              <span class="rank-chip">{{ s.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+            <div class="compact-metrics">
+              <span class="mini-metric">Triệu chứng: {{ s.symptom_count }}</span>
+              <span class="mini-metric">Kết quả: {{ s.results.count() }}</span>
+              {% set top = s.results.first() %}
+              {% if top %}
+              <span class="mini-metric">Đứng đầu: {{ top.disease_name }} ({{ top.differential_percent }}%)</span>
+              {% endif %}
+            </div>
+            {% if s.selected_symptoms %}
+            <div class="selected-tags compact-tags">
+              {% for symptom in s.selected_symptoms[:5] %}
+              <span class="tag">{{ symptom }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <div class="history-card-footer">
+              <a class="ghost-btn" href="{{ url_for('history_detail', screening_id=s.id) }}">Mở chi tiết</a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        {% if screenings.pages > 1 %}
+        <div class="compact-metrics" style="margin-top: 18px;">
+          {% if screenings.has_prev %}
+          <a class="ghost-btn" href="{{ url_for('history', page=screenings.prev_num) }}">Trang trước</a>
+          {% endif %}
+          <span class="mini-metric">Trang {{ screenings.page }} / {{ screenings.pages }}</span>
+          {% if screenings.has_next %}
+          <a class="ghost-btn" href="{{ url_for('history', page=screenings.next_num) }}">Trang sau</a>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+          <h2>Chưa có lịch sử sàng lọc</h2>
+          <p>Hãy thực hiện một lần sàng lọc để hệ thống bắt đầu lưu kết quả.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>

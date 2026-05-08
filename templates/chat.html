@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sàng lọc qua hội thoại | MedAI Screening</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+      .chat-shell {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .chat-board {
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .chat-messages {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 8px 0 20px;
+      }
+      .chat-bubble {
+        max-width: 80%;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .chat-bubble.user {
+        align-self: flex-end;
+        background: rgba(93, 180, 255, 0.18);
+      }
+      .chat-bubble.ai {
+        align-self: flex-start;
+      }
+      .chat-input-row {
+        display: flex;
+        gap: 10px;
+      }
+      .chat-input-row input {
+        flex: 1;
+      }
+      .chat-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .chat-option-btn {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body class="result-page">
+    <div class="page-shell">
+      <div class="result-shell result-shell-compact chat-shell">
+        <div class="result-topbar">
+          <div>
+            <p class="eyebrow">Chế độ chat</p>
+            <h1>Sàng lọc bằng hội thoại</h1>
+            <p class="hero-text dark-text">Trả lời lần lượt các câu hỏi, hệ thống sẽ tự gọi API và trả kết quả cuối.</p>
+          </div>
+          <div class="result-actions">
+            <a class="ghost-btn" href="{{ url_for('index') }}">Chế độ form</a>
+            <a class="ghost-btn" href="{{ url_for('history') }}">Lịch sử</a>
+          </div>
+        </div>
+
+        <div class="selected-panel chat-board">
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input-row">
+            <input id="chatInput" type="text" placeholder="Nhập câu trả lời..." autocomplete="off" />
+            <button id="chatSend" class="primary-btn" type="button">Gửi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const messagesEl = document.getElementById("chatMessages");
+        const inputEl = document.getElementById("chatInput");
+        const sendBtn = document.getElementById("chatSend");
+
+        let state = {
+          step: "name",
+          data: {
+            name: "",
+            age: "",
+            gender: "all",
+            severity: "moderate",
+            duration: "fewdays",
+            symptom_text: "",
+            symptoms: [],
+          },
+        };
+
+        const steps = {
+          name: { question: "Tên người bệnh là gì?", next: "age" },
+          age: { question: "Tuổi bao nhiêu?", next: "gender" },
+          gender: {
+            question: "Giới tính?",
+            next: "severity",
+            options: [
+              { label: "Nam", value: "male" },
+              { label: "Nữ", value: "female" },
+              { label: "Khác", value: "all" },
+            ],
+          },
+          severity: {
+            question: "Mức độ hiện tại?",
+            next: "duration",
+            options: [
+              { label: "Nhẹ", value: "mild" },
+              { label: "Vừa", value: "moderate" },
+              { label: "Nặng", value: "severe" },
+            ],
+          },
+          duration: {
+            question: "Triệu chứng xuất hiện bao lâu rồi?",
+            next: "symptom_text",
+            options: [
+              { label: "Khoảng 1 ngày", value: "1day" },
+              { label: "Vài ngày", value: "fewdays" },
+              { label: "Nhiều tuần", value: "weeks" },
+            ],
+          },
+          symptom_text: { question: "Hãy mô tả triệu chứng bằng câu tự nhiên.", next: "submit" },
+        };
+
+        function addMessage(text, role, options) {
+          const bubble = document.createElement("div");
+          bubble.className = `chat-bubble ${role}`;
+          bubble.innerHTML = text;
+          if (options && options.length) {
+            const optionsEl = document.createElement("div");
+            optionsEl.className = "chat-options";
+            options.forEach((option) => {
+              const button = document.createElement("button");
+              button.className = "chat-option-btn";
+              button.type = "button";
+              button.textContent = option.label;
+              button.addEventListener("click", () => handleInput(option.value, option.label));
+              optionsEl.appendChild(button);
+            });
+            bubble.appendChild(optionsEl);
+          }
+          messagesEl.appendChild(bubble);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function askCurrentStep() {
+          const step = steps[state.step];
+          if (!step) {
+            return;
+          }
+          addMessage(step.question, "ai", step.options);
+        }
+
+        async function submitScreening() {
+          addMessage("Đang phân tích dữ liệu...", "ai");
+          const response = await fetch("/api/v1/screen", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(state.data),
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            addMessage(payload.error || "Có lỗi khi phân tích.", "ai");
+            return;
+          }
+
+          if (!payload.results || !payload.results.length) {
+            addMessage("Chưa đủ dữ kiện để đưa ra kết quả.", "ai");
+            return;
+          }
+
+          const top = payload.results[0];
+          addMessage(
+            `<strong>Kết quả đứng đầu:</strong> ${top.disease_name} (${top.differential_percent}%)<br>${top.description || ""}`,
+            "ai"
+          );
+          addMessage(
+            `Đã lưu phiên sàng lọc. <a class="ghost-btn" href="/lich-su/${payload.screening_id}">Xem chi tiết phiên này</a>`,
+            "ai"
+          );
+        }
+
+        function handleInput(value, label) {
+          addMessage(label || value, "user");
+
+          if (state.step === "name") state.data.name = value;
+          if (state.step === "age") state.data.age = value;
+          if (state.step === "gender") state.data.gender = value;
+          if (state.step === "severity") state.data.severity = value;
+          if (state.step === "duration") state.data.duration = value;
+          if (state.step === "symptom_text") state.data.symptom_text = value;
+
+          inputEl.value = "";
+
+          const current = steps[state.step];
+          state.step = current.next;
+
+          if (state.step === "submit") {
+            submitScreening();
+            return;
+          }
+
+          askCurrentStep();
+        }
+
+        sendBtn.addEventListener("click", () => {
+          const value = inputEl.value.trim();
+          if (!value) return;
+          handleInput(value, value);
+        });
+
+        inputEl.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+          }
+        });
+
+        askCurrentStep();
+      })();
+    </script>
+  </body>
+</html>
