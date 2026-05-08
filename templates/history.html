@@ -18,6 +18,9 @@
           <div class="result-actions">
             <a class="ghost-btn" href="{{ url_for('index') }}">Sàng lọc mới</a>
             <a class="ghost-btn" href="{{ url_for('chat') }}">Chế độ chat</a>
+            <form method="post" action="{{ url_for('clear_history') }}" class="inline-action-form">
+              <button class="ghost-btn danger-ghost-btn" type="submit">Xóa lịch sử của tôi</button>
+            </form>
           </div>
         </div>
 

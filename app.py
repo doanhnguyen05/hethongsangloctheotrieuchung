@@ -1,6 +1,8 @@
 import os
+import uuid
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, abort, g, jsonify, redirect, render_template, request, url_for
+from sqlalchemy import text
 
 from inference_engine import infer_disease
 from knowledge_base import FOLLOWUP_RULES, SYMPTOMS, SYMPTOM_GROUPS, SYMPTOM_KEYWORDS
@@ -37,10 +39,33 @@ app = create_app()
 
 with app.app_context():
     db.create_all()
+    inspector = db.inspect(db.engine)
+    screening_columns = {column["name"] for column in inspector.get_columns("screenings")}
+    if "client_id" not in screening_columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE screenings ADD COLUMN client_id VARCHAR(64)"))
+            connection.execute(text("CREATE INDEX IF NOT EXISTS ix_screenings_client_id ON screenings (client_id)"))
+
+
+def get_client_id():
+    client_id = request.cookies.get("medai_client_id")
+    if not client_id:
+        client_id = uuid.uuid4().hex
+        g.set_client_cookie = client_id
+    return client_id
 
 
 @app.after_request
 def add_no_cache_headers(response):
+    client_id = getattr(g, "set_client_cookie", None)
+    if client_id:
+        response.set_cookie(
+            "medai_client_id",
+            client_id,
+            max_age=60 * 60 * 24 * 365,
+            httponly=True,
+            samesite="Lax",
+        )
     if not request.path.startswith("/static/"):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
@@ -130,6 +155,7 @@ def serialize_result_payload(result):
 
 
 def save_screening(
+    client_id,
     patient,
     stage,
     severity,
@@ -142,6 +168,7 @@ def save_screening(
 ):
     screening = Screening(
         patient_id=patient.id,
+        client_id=client_id,
         stage=stage,
         severity=severity,
         duration=duration,
@@ -215,6 +242,7 @@ def index():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    client_id = get_client_id()
     stage = request.form.get("stage", "initial")
     name = (request.form.get("name") or "Người bệnh").strip() or "Người bệnh"
     age = parse_age((request.form.get("age") or "").strip())
@@ -240,6 +268,7 @@ def predict():
             )
             patient = get_or_create_patient(name, age, gender)
             save_screening(
+                client_id,
                 patient,
                 "followup",
                 severity,
@@ -279,6 +308,7 @@ def predict():
 
     patient = get_or_create_patient(name, age, gender)
     screening = save_screening(
+        client_id,
         patient,
         "final",
         severity,
@@ -309,8 +339,9 @@ def predict():
 
 @app.route("/lich-su", methods=["GET"])
 def history():
+    client_id = get_client_id()
     page = request.args.get("page", 1, type=int)
-    screenings = Screening.query.filter_by(stage="final").order_by(
+    screenings = Screening.query.filter_by(stage="final", client_id=client_id).order_by(
         Screening.created_at.desc()
     ).paginate(page=page, per_page=20, error_out=False)
     return render_template("history.html", screenings=screenings)
@@ -318,7 +349,10 @@ def history():
 
 @app.route("/lich-su/<int:screening_id>", methods=["GET"])
 def history_detail(screening_id):
-    screening = Screening.query.get_or_404(screening_id)
+    client_id = get_client_id()
+    screening = Screening.query.filter_by(id=screening_id, client_id=client_id).first()
+    if screening is None:
+        abort(404)
     results = screening.results.all()
     results_json = [item.to_dict() for item in results]
     return render_template(
@@ -327,6 +361,20 @@ def history_detail(screening_id):
         results=results,
         results_json=results_json,
     )
+
+
+@app.route("/lich-su/xoa", methods=["POST"])
+def clear_history():
+    client_id = get_client_id()
+    screenings = Screening.query.filter_by(client_id=client_id).all()
+    screening_ids = [item.id for item in screenings]
+    if screening_ids:
+        ScreeningResult.query.filter(ScreeningResult.screening_id.in_(screening_ids)).delete(
+            synchronize_session=False
+        )
+        Screening.query.filter(Screening.id.in_(screening_ids)).delete(synchronize_session=False)
+        db.session.commit()
+    return redirect(url_for("history"))
 
 
 @app.route("/api/v1/health", methods=["GET"])
@@ -343,6 +391,7 @@ def api_health():
 
 @app.route("/api/v1/screen", methods=["POST"])
 def api_screen():
+    client_id = get_client_id()
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "JSON body required"}), 400
@@ -371,6 +420,7 @@ def api_screen():
 
     patient = get_or_create_patient(name, age, gender)
     screening = save_screening(
+        client_id,
         patient,
         "final",
         severity,
@@ -424,9 +474,10 @@ def api_symptoms():
 
 @app.route("/api/v1/history", methods=["GET"])
 def api_history():
+    client_id = get_client_id()
     page = request.args.get("page", 1, type=int)
     per_page = min(max(request.args.get("per_page", 20, type=int), 1), 100)
-    screenings = Screening.query.filter_by(stage="final").order_by(
+    screenings = Screening.query.filter_by(stage="final", client_id=client_id).order_by(
         Screening.created_at.desc()
     ).paginate(page=page, per_page=per_page, error_out=False)
     return jsonify(
@@ -441,7 +492,10 @@ def api_history():
 
 @app.route("/api/v1/screening/<int:screening_id>", methods=["GET"])
 def api_screening_detail(screening_id):
-    screening = Screening.query.get_or_404(screening_id)
+    client_id = get_client_id()
+    screening = Screening.query.filter_by(id=screening_id, client_id=client_id).first()
+    if screening is None:
+        abort(404)
     payload = screening.to_dict()
     payload["results"] = [item.to_dict() for item in screening.results.all()]
     payload["patient"] = screening.patient.to_dict()

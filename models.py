@@ -38,6 +38,7 @@ class Screening(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    client_id = db.Column(db.String(64), nullable=True, index=True)
     stage = db.Column(db.String(20), nullable=False)
     severity = db.Column(db.String(20), default="moderate")
     duration = db.Column(db.String(20), default="fewdays")
@@ -61,6 +62,7 @@ class Screening(db.Model):
             "id": self.id,
             "patient_id": self.patient_id,
             "patient_name": self.patient.name,
+            "client_id": self.client_id,
             "stage": self.stage,
             "severity": self.severity,
             "duration": self.duration,

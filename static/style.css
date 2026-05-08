@@ -528,6 +528,10 @@ a {
   flex-wrap: wrap;
 }
 
+.inline-action-form {
+  margin: 0;
+}
+
 .topbar-actions-left {
   justify-content: flex-start;
 }
@@ -1100,6 +1104,16 @@ textarea {
     translateY(-3px) 
     translateZ(10px)
     rotateX(3deg);
+}
+
+.danger-ghost-btn {
+  border-color: rgba(255, 123, 145, 0.35);
+  background: rgba(255, 123, 145, 0.12);
+}
+
+.danger-ghost-btn:hover {
+  background: rgba(255, 123, 145, 0.2);
+  border-color: rgba(255, 123, 145, 0.5);
 }
 
 /* ========================================
