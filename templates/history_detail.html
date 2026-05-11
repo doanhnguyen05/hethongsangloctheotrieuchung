@@ -32,7 +32,7 @@
           </div>
           <div class="summary-box">
             <span>Giới tính</span>
-            <strong>{{ screening.patient.gender }}</strong>
+            <strong>{{ gender_label(screening.patient.gender) }}</strong>
           </div>
           <div class="summary-box">
             <span>Số triệu chứng</span>
@@ -70,11 +70,16 @@
 
         <div class="selected-panel">
           <h3>Kết quả đã lưu</h3>
+          {% if not results %}
+          <p class="empty-text">
+            Không còn kết quả phù hợp sau khi lọc theo giới tính và dữ kiện người bệnh.
+          </p>
+          {% endif %}
           <div class="compact-stack">
             {% for r in results %}
             <article class="compact-result-card">
               <div class="compact-result-head">
-                <strong>{{ r.rank }}. {{ r.icon }} {{ r.disease_name }}</strong>
+                <strong>{{ loop.index }}. {{ r.icon }} {{ r.disease_name }}</strong>
                 <span class="rank-chip">{{ r.differential_percent }}%</span>
               </div>
               <p class="compact-result-text">{{ r.description }}</p>
@@ -91,6 +96,33 @@
                 {% endfor %}
               </div>
               {% endif %}
+              <div class="compact-two-columns">
+                <div>
+                  <h4>Triệu chứng đã khớp</h4>
+                  {% if r.matched %}
+                  <ul class="feature-list compact-list">
+                    {% for symptom in r.matched %}
+                    <li>{{ symptom }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="empty-text">Chưa có triệu chứng khớp rõ.</p>
+                  {% endif %}
+                </div>
+                <div>
+                  <h4>Core symptom</h4>
+                  {% if r.missing_core %}
+                  <p class="compact-result-text">Còn thiếu:</p>
+                  <ul class="feature-list compact-list muted-list">
+                    {% for symptom in r.missing_core %}
+                    <li>{{ symptom }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="all-good">Đã khớp toàn bộ core symptom.</p>
+                  {% endif %}
+                </div>
+              </div>
               {% if r.reasoning_steps %}
               <details class="compact-details">
                 <summary>Xem suy luận AI</summary>

@@ -183,6 +183,12 @@
                 <span class="mini-metric">Tập trung: {{ r.precision_percent }}%</span>
                 <span class="mini-metric">Cạnh tranh: {{ r.competitor_level }}</span>
               </div>
+              <p class="compact-result-text">
+                <strong>Độ tuổi:</strong> {{ r.age_note }}
+              </p>
+              <p class="compact-result-text">
+                <strong>Giới tính:</strong> {{ r.gender_note }}
+              </p>
 
               {% if r.flags %}
               <div class="alert-flag-box">

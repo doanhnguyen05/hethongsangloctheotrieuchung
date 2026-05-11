@@ -3,8 +3,59 @@
 Knowledge base mở rộng cho hệ thống suy luận bệnh.
 - Tổng số bệnh: 159
 - Số bệnh bổ sung thêm: 119
+
+File này là kho tri thức của hệ chuyên gia.
+Nó không trực tiếp tính toán điểm bệnh, mà cung cấp dữ liệu cho app.py và inference_engine.py.
+
+Các khối dữ liệu chính:
+1. SYMPTOMS:
+   - Ánh xạ mã triệu chứng Sxx sang tên triệu chứng tiếng Việt.
+   - Ví dụ: "S03" nghĩa là "Ho khan".
+   - app.py dùng khối này để hiển thị tên triệu chứng.
+   - inference_engine.py dùng khối này để đổi mã triệu chứng thành tên khi giải thích kết quả.
+
+2. SYMPTOM_GROUPS:
+   - Gom các triệu chứng vào nhóm cơ quan/hệ bệnh.
+   - Giao diện dùng khối này để chia checkbox triệu chứng theo nhóm.
+   - Một triệu chứng có thể xuất hiện ở nhiều nhóm nếu nó có ý nghĩa ở nhiều bệnh cảnh.
+
+3. SYMPTOM_KEYWORDS:
+   - Danh sách từ khóa để nhận diện triệu chứng từ văn bản người dùng nhập.
+   - app.py dùng hàm extract_symptoms_from_text(...) để dò các từ khóa này.
+   - Nếu câu nhập chứa một từ khóa của Sxx thì hệ thống xem như người dùng có triệu chứng Sxx.
+
+4. FOLLOWUP_RULES:
+   - Tập luật hỏi bổ sung, mô phỏng suy diễn lùi.
+   - Khi người dùng có một triệu chứng kích hoạt, hệ thống hỏi thêm câu hỏi liên quan.
+   - Câu trả lời có thể bổ sung triệu chứng mới hoặc cộng/trừ điểm cho bệnh cụ thể.
+
+5. DISEASES:
+   - Kho bệnh của hệ chuyên gia.
+   - Mỗi bệnh là một giả thuyết chẩn đoán.
+   - inference_engine.py duyệt từng bệnh trong DISEASES để tính điểm phù hợp.
+
+Quy ước một bệnh trong DISEASES:
+- name: tên bệnh hiển thị.
+- icon: biểu tượng hiển thị trên giao diện.
+- theme: màu/chủ đề giao diện.
+- group: nhóm bệnh để phân loại và chuẩn hóa cạnh tranh trong cùng nhóm.
+- description: mô tả ngắn về bệnh.
+- advice: lời khuyên định hướng cho người dùng.
+- age_range: khoảng tuổi thường gặp, dùng để cộng/trừ điểm theo ngữ cảnh tuổi.
+- gender: giới tính phù hợp, gồm "all", "male", "female".
+- priority: mức ưu tiên/nguy cơ, gồm "low", "medium", "high", "critical".
+- core: các triệu chứng cốt lõi của bệnh, có ảnh hưởng mạnh đến điểm chẩn đoán.
+- weights: trọng số của từng triệu chứng đối với bệnh; trọng số càng cao thì triệu chứng càng quan trọng.
+
+Lưu ý y khoa:
+- Đây là dữ liệu phục vụ mô phỏng hệ chuyên gia trong môn Trí tuệ nhân tạo.
+- Kết quả chỉ có ý nghĩa sàng lọc/tham khảo, không thay thế chẩn đoán của bác sĩ.
 """
 
+# SYMPTOMS là bảng mã hóa triệu chứng.
+# Khóa của dictionary là mã triệu chứng dạng Sxx.
+# Giá trị là tên triệu chứng tiếng Việt để hiển thị cho người dùng.
+# Tất cả mã Sxx trong DISEASES, SYMPTOM_GROUPS, SYMPTOM_KEYWORDS đều phải tồn tại ở đây.
 SYMPTOMS = {'S01': 'Sốt nhẹ',
  'S02': 'Sốt cao',
  'S03': 'Ho khan',
@@ -115,6 +166,16 @@ SYMPTOMS = {'S01': 'Sốt nhẹ',
  'S108': 'Thay đổi thói quen đi cầu kéo dài',
  'S109': 'Phân có máu'}
 
+# SYMPTOM_GROUPS dùng để gom các triệu chứng theo nhóm chức năng/cơ quan.
+# Cấu trúc:
+#   "Tên nhóm": ["S01", "S02", ...]
+# Ý nghĩa:
+# - Giúp giao diện hiển thị triệu chứng theo từng nhóm dễ chọn hơn.
+# - Không trực tiếp quyết định bệnh, nhưng giúp tổ chức dữ liệu đầu vào.
+# - Một mã triệu chứng có thể nằm trong nhiều nhóm nếu có ý nghĩa ở nhiều bối cảnh.
+# Ví dụ:
+# - "Hô hấp & truyền nhiễm" chứa sốt, ho, khó thở, sổ mũi...
+# - "Dấu hiệu cảnh báo ung thư" gom các dấu hiệu nguy cơ như sụt cân, ho ra máu, nôn máu.
 SYMPTOM_GROUPS = {'Hô hấp & truyền nhiễm': ['S01',
                            'S02',
                            'S03',
@@ -209,6 +270,15 @@ SYMPTOM_GROUPS = {'Hô hấp & truyền nhiễm': ['S01',
                                'S108',
                                'S109']}
 
+# SYMPTOM_KEYWORDS dùng để nhận diện triệu chứng từ câu mô tả tự do.
+# Cấu trúc:
+#   "Mã triệu chứng": ["từ khóa 1", "từ khóa 2", ...]
+# app.py đọc khối này trong hàm extract_symptoms_from_text(...).
+# Nếu người dùng nhập câu có chứa một từ khóa, hệ thống tự thêm mã triệu chứng tương ứng.
+# Ví dụ:
+# - Người dùng nhập "tôi bị ho khan" => khớp từ khóa "ho khan" => thêm S03.
+# - Người dùng nhập "đi ngoài phân đen" => khớp từ khóa "đi ngoài phân đen" => thêm S103.
+# Cách này là so khớp từ khóa đơn giản, chưa phải xử lý ngôn ngữ tự nhiên nâng cao.
 SYMPTOM_KEYWORDS = {'S01': ['sốt nhẹ', 'âm ấm', 'sốt vừa'],
  'S02': ['sốt cao', 'sốt', 'nóng sốt'],
  'S03': ['ho khan', 'ho không đờm'],
@@ -319,86 +389,164 @@ SYMPTOM_KEYWORDS = {'S01': ['sốt nhẹ', 'âm ấm', 'sốt vừa'],
  'S108': ['thay đổi thói quen đi cầu', 'táo bón kéo dài', 'tiêu chảy kéo dài'],
  'S109': ['phân có máu', 'đi ngoài ra máu']}
 
-FOLLOWUP_RULES = [{'id': 'F01',
+# FOLLOWUP_RULES là tập luật hỏi bổ sung.
+# Đây là phần mô phỏng suy diễn lùi:
+# - Ban đầu hệ thống có một số triệu chứng.
+# - Nếu triệu chứng đó chưa đủ rõ, hệ thống hỏi thêm.
+# - Câu trả lời giúp bổ sung triệu chứng hoặc tăng/giảm điểm một bệnh.
+#
+# Cấu trúc mỗi luật:
+# - id: mã câu hỏi bổ sung.
+# - trigger_symptoms: nếu người dùng có một trong các triệu chứng này thì câu hỏi được kích hoạt.
+# - question: nội dung câu hỏi hiển thị.
+# - type: kiểu câu hỏi; hiện tại dùng "single" nghĩa là chọn một đáp án.
+# - options: danh sách đáp án.
+#
+# Cấu trúc mỗi đáp án:
+# - value: mã nội bộ của đáp án.
+# - label: nội dung đáp án hiển thị.
+# - add_symptoms: các triệu chứng được bổ sung nếu người dùng chọn đáp án này.
+# - weight_delta: điểm cộng/trừ trực tiếp cho từng bệnh.
+#   Ví dụ {'heart_attack': 0.18} nghĩa là tăng 0.18 điểm nghi ngờ nhồi máu cơ tim.
+FOLLOWUP_RULES = [
+ # F01 được kích hoạt khi người dùng có S17: ho ra máu.
+ # Mục tiêu: hỏi thêm để phân biệt ho ra máu mới xuất hiện với ho ra máu kéo dài,
+ # đồng thời tăng nghi ngờ lao phổi hoặc ung thư phổi nếu kèm ho kéo dài/sụt cân.
+ {'id': 'F01',
   'trigger_symptoms': ['S17'],
   'question': 'Bạn ho ra máu bao lâu rồi và lượng máu ít hay nhiều?',
   'type': 'single',
-  'options': [{'value': 'small_recent', 'label': 'Mới xuất hiện, lượng ít', 'add_symptoms': [], 'weight_delta': {}},
+  'options': [
+              # Đáp án này chỉ ghi nhận thông tin, không bổ sung triệu chứng và không đổi điểm bệnh.
+              {'value': 'small_recent', 'label': 'Mới xuất hiện, lượng ít', 'add_symptoms': [], 'weight_delta': {}},
+              # Ho ra máu lặp lại nhiều ngày thường gợi ý bệnh mạn tính hơn, nên bổ sung S16.
               {'value': 'persistent',
                'label': 'Lặp lại nhiều ngày',
                'add_symptoms': ['S16'],
                'weight_delta': {'tuberculosis': 0.08, 'lung_cancer': 0.1}},
+              # Ho ra máu kèm sụt cân/mệt kéo dài là tín hiệu mạnh cho lao phổi hoặc ung thư phổi.
               {'value': 'weightloss',
                'label': 'Kèm sụt cân hoặc mệt kéo dài',
                'add_symptoms': ['S16', 'S18', 'S32'],
                'weight_delta': {'tuberculosis': 0.12, 'lung_cancer': 0.12}}]},
+ # F02 được kích hoạt khi có đau ngực trái hoặc đau ngực dai dẳng.
+ # Mục tiêu: hỏi dấu hiệu đau lan và khó thở để tăng nghi ngờ nhồi máu cơ tim.
  {'id': 'F02',
   'trigger_symptoms': ['S45', 'S99'],
   'question': 'Cơn đau ngực có lan lên hàm hoặc tay trái không?',
   'type': 'single',
-  'options': [{'value': 'no', 'label': 'Không', 'add_symptoms': [], 'weight_delta': {}},
+  'options': [
+              # Không đau lan thì không cộng thêm điểm.
+              {'value': 'no', 'label': 'Không', 'add_symptoms': [], 'weight_delta': {}},
+              # Đau lan rõ lên hàm/tay trái là dấu hiệu quan trọng của bệnh mạch vành.
               {'value': 'yes',
                'label': 'Có lan rõ lên hàm hoặc tay trái',
                'add_symptoms': ['S46'],
                'weight_delta': {'heart_attack': 0.18}},
+              # Đau lan kèm khó thở/mệt là tình huống nguy cơ cao hơn.
               {'value': 'breath',
                'label': 'Kèm khó thở hoặc vã mồ hôi',
                'add_symptoms': ['S46', 'S04', 'S32'],
                'weight_delta': {'heart_attack': 0.22, 'heart_failure': 0.06}}]},
+ # F03 được kích hoạt khi có liệt mặt, yếu nửa người hoặc nói ngọng.
+ # Mục tiêu: hỏi tính chất khởi phát đột ngột để phân biệt đột quỵ với các nguyên nhân từ từ.
  {'id': 'F03',
   'trigger_symptoms': ['S47', 'S48', 'S49'],
   'question': 'Các dấu hiệu yếu liệt hoặc nói khó xuất hiện đột ngột trong vài phút đến vài giờ phải không?',
   'type': 'single',
-  'options': [{'value': 'yes', 'label': 'Có, xuất hiện đột ngột', 'add_symptoms': [], 'weight_delta': {'stroke': 0.25}},
+  'options': [
+              # Khởi phát đột ngột làm tăng mạnh nghi ngờ đột quỵ.
+              {'value': 'yes', 'label': 'Có, xuất hiện đột ngột', 'add_symptoms': [], 'weight_delta': {'stroke': 0.25}},
+              # Khởi phát từ từ làm giảm bớt nghi ngờ đột quỵ cấp.
               {'value': 'gradual', 'label': 'Xuất hiện từ từ', 'add_symptoms': [], 'weight_delta': {'stroke': -0.1}},
+              # Không rõ thì không điều chỉnh điểm.
               {'value': 'unclear', 'label': 'Không rõ', 'add_symptoms': [], 'weight_delta': {}}]},
+ # F04 được kích hoạt khi có triệu chứng trào ngược/đau bụng.
+ # Mục tiêu: phân biệt GERD với bệnh dạ dày có dấu hiệu xuất huyết.
  {'id': 'F04',
   'trigger_symptoms': ['S38', 'S39', 'S40', 'S14'],
   'question': 'Triệu chứng đau rát hoặc khó chịu tăng lên sau ăn no hay khi nằm xuống không?',
   'type': 'single',
-  'options': [{'value': 'yes', 'label': 'Có', 'add_symptoms': ['S38', 'S39', 'S40'], 'weight_delta': {'gerd': 0.18}},
+  'options': [
+              # Đau rát tăng sau ăn hoặc khi nằm phù hợp với trào ngược dạ dày thực quản.
+              {'value': 'yes', 'label': 'Có', 'add_symptoms': ['S38', 'S39', 'S40'], 'weight_delta': {'gerd': 0.18}},
+              # Không có đặc điểm này thì không điều chỉnh.
               {'value': 'no', 'label': 'Không', 'add_symptoms': [], 'weight_delta': {}},
+              # Nôn máu/phân đen là dấu hiệu cảnh báo xuất huyết tiêu hóa.
               {'value': 'with_bleeding',
                'label': 'Không, nhưng có nôn máu hoặc phân đen',
                'add_symptoms': ['S102', 'S103'],
                'weight_delta': {'stomach_cancer': 0.18, 'gastritis': 0.05}}]},
+ # F05 được kích hoạt khi có loét miệng hoặc phỏng nước tay chân.
+ # Mục tiêu: hỏi thêm dấu hiệu ở trẻ nhỏ để tăng nghi ngờ tay chân miệng.
  {'id': 'F05',
   'trigger_symptoms': ['S27', 'S28'],
   'question': 'Người bệnh là trẻ nhỏ và có quấy khóc, sốt hoặc giật mình không?',
   'type': 'single',
-  'options': [{'value': 'yes',
+  'options': [
+              # Trẻ nhỏ có sốt/quấy khóc làm tăng nghi ngờ tay chân miệng.
+              {'value': 'yes',
                'label': 'Có',
                'add_symptoms': ['S02', 'S92'],
                'weight_delta': {'hand_foot_mouth': 0.18}},
+              # Loét miệng ít sốt vẫn có thể liên quan tay chân miệng nhưng mức tăng nhẹ hơn.
               {'value': 'mild',
                'label': 'Có loét miệng nhưng ít sốt',
                'add_symptoms': ['S01'],
                'weight_delta': {'hand_foot_mouth': 0.08}},
+              # Không có dấu hiệu ở trẻ nhỏ thì không điều chỉnh.
               {'value': 'no', 'label': 'Không', 'add_symptoms': [], 'weight_delta': {}}]},
+ # F06 được kích hoạt khi có vàng da, vàng mắt hoặc nước tiểu sẫm.
+ # Mục tiêu: hỏi thêm mệt/chán ăn/đau hạ sườn phải để phân biệt viêm gan, sỏi mật, ung thư gan.
  {'id': 'F06',
   'trigger_symptoms': ['S29', 'S30', 'S31'],
   'question': 'Bạn có kèm chán ăn, mệt nhiều hoặc đau hạ sườn phải không?',
   'type': 'single',
-  'options': [{'value': 'hepatitis',
+  'options': [
+              # Mệt và chán ăn đi cùng vàng da làm tăng nghi ngờ viêm gan cấp.
+              {'value': 'hepatitis',
                'label': 'Có, kèm mệt và chán ăn',
                'add_symptoms': ['S32', 'S33'],
                'weight_delta': {'acute_hepatitis': 0.16}},
+              # Đau hạ sườn phải giúp tăng nghi ngờ bệnh gan mật.
               {'value': 'pain',
                'label': 'Có, đau tức hạ sườn phải rõ',
                'add_symptoms': ['S37'],
                'weight_delta': {'gallstones': 0.12, 'liver_cancer': 0.1}},
-              {'value': 'no', 'label': 'Không rõ', 'add_symptoms': [], 'weight_delta': {}}]}]
+              # Không rõ thì không điều chỉnh.
+               {'value': 'no', 'label': 'Không rõ', 'add_symptoms': [], 'weight_delta': {}}]}]
 
+# NEGATION_WORDS là danh sách từ phủ định thường gặp trong tiếng Việt không dấu/có dấu.
+# Khối này dùng cho các bước mở rộng xử lý văn bản:
+# nếu câu có từ phủ định gần triệu chứng, hệ thống có thể tránh hiểu nhầm là người dùng đang có triệu chứng đó.
+# Ví dụ: "không ho", "chưa sốt", "ko đau ngực".
 NEGATION_WORDS = ['không', 'chưa', 'ko', 'k', 'khong', 'chẳng', 'chua']
 
+# SEVERITY_KEYWORDS ánh xạ từ khóa sang mức độ nặng.
+# Cấu trúc:
+#   "mức_độ": ["từ khóa", ...]
+# Các mức đang dùng:
+# - mild: nhẹ.
+# - moderate: vừa.
+# - severe: nặng.
+# Có thể dùng để tự suy ra severity nếu người dùng nhập văn bản tự do.
 SEVERITY_KEYWORDS = {'mild': ['nhẹ', 'âm ỉ', 'thoáng qua'],
  'moderate': ['vừa', 'khó chịu', 'rõ rệt'],
  'severe': ['nặng', 'dữ dội', 'nghiêm trọng', 'không chịu nổi']}
 
+# DURATION_KEYWORDS ánh xạ từ khóa sang thời gian mắc bệnh.
+# Các mức đang dùng:
+# - 1day: mới khoảng 1 ngày.
+# - fewdays: vài ngày.
+# - weeks: nhiều tuần/kéo dài.
+# inference_engine.py dùng duration_factor để tăng/giảm nhẹ điểm theo thời gian mắc.
 DURATION_KEYWORDS = {'1day': ['1 ngày', 'một ngày', 'hôm nay', 'mới hôm qua'],
  'fewdays': ['vài ngày', 'mấy ngày', '2 ngày', '3 ngày', '4 ngày', '5 ngày'],
  'weeks': ['nhiều tuần', 'mấy tuần', '2 tuần', '3 tuần', 'hơn 2 tuần', 'kéo dài']}
 
+# EMERGENCY_KEYWORDS là các cụm từ cảnh báo cấp cứu.
+# Nếu phần nhập tự do có các cụm này, hệ thống có thể ưu tiên cảnh báo nguy hiểm.
+# Ví dụ: "liệt nửa người", "đau ngực dữ dội", "nôn ra máu".
 EMERGENCY_KEYWORDS = ['khó thở nhiều',
  'khó thở tăng dần',
  'đau ngực dữ dội',
@@ -408,17 +556,94 @@ EMERGENCY_KEYWORDS = ['khó thở nhiều',
  'nôn ra máu',
  'ho ra máu nhiều']
 
-DISEASES = {'covid': {'name': 'COVID-19',
+# ================= BIỂU DIỄN TRI THỨC TRONG HỆ CHUYÊN GIA =================
+# DISEASES là kho bệnh chính của hệ chuyên gia.
+#
+# Đây là phần "biểu diễn tri thức" quan trọng nhất của đồ án:
+# - Tri thức về bệnh được biểu diễn bằng dictionary Python.
+# - Mỗi khóa của DISEASES là một mã bệnh, ví dụ "covid", "influenza".
+# - Mỗi giá trị là một frame/record mô tả bệnh đó.
+# - Các trường core, weights, age_range, gender, priority chính là luật/ngữ cảnh
+#   để inference_engine.py tính điểm và suy diễn.
+#
+# Có thể xem mỗi bệnh là một frame tri thức:
+#   DiseaseFrame = {
+#       name,
+#       group,
+#       description,
+#       advice,
+#       age_range,
+#       gender,
+#       priority,
+#       core,
+#       weights
+#   }
+#
+# Trong đó:
+# - core biểu diễn tập triệu chứng cốt lõi bắt buộc/quan trọng.
+# - weights biểu diễn mức độ liên quan của từng triệu chứng với bệnh.
+# - age_range và gender biểu diễn điều kiện ngữ cảnh.
+# - priority biểu diễn xác suất tiên nghiệm tương đối khi tính Bayes giả lập.
+#
+# Ngoài DISEASES, file này còn có các phần tri thức phụ:
+# - SYMPTOMS: từ điển mã triệu chứng -> tên triệu chứng.
+# - SYMPTOM_GROUPS: phân nhóm triệu chứng để giao diện nhập liệu rõ ràng hơn.
+# - SYMPTOM_KEYWORDS: tri thức nhận dạng triệu chứng từ câu văn tự do.
+# - FOLLOWUP_RULES: luật hỏi bổ sung, mô phỏng suy diễn lùi.
+#
+# Cấu trúc tổng quát:
+#   "mã_bệnh": {
+#       "name": tên bệnh,
+#       "icon": biểu tượng,
+#       "theme": màu giao diện,
+#       "group": nhóm bệnh,
+#       "description": mô tả bệnh,
+#       "advice": lời khuyên,
+#       "age_range": khoảng tuổi thường gặp,
+#       "gender": giới tính phù hợp,
+#       "priority": mức ưu tiên/nguy cơ,
+#       "core": danh sách triệu chứng cốt lõi,
+#       "weights": trọng số từng triệu chứng
+#   }
+#
+# Cách inference_engine.py dùng DISEASES:
+# 1. Duyệt từng bệnh như một giả thuyết.
+# 2. So sánh triệu chứng người dùng với weights của bệnh.
+# 3. Tính độ phủ = tổng trọng số triệu chứng khớp / tổng trọng số bệnh.
+# 4. Tính điểm cốt lõi = số triệu chứng trong core đã khớp / tổng số triệu chứng core.
+# 5. Dùng age_range, gender, priority để hiệu chỉnh điểm.
+# 6. Trả về danh sách bệnh được xếp hạng theo độ phù hợp.
+DISEASES = {
+ # covid là mã định danh nội bộ của bệnh COVID-19.
+ 'covid': {
+           # name là tên bệnh hiển thị cho người dùng.
+           'name': 'COVID-19',
+           # icon là biểu tượng hiển thị trên thẻ kết quả.
            'icon': '🦠',
+           # theme là chủ đề màu giao diện cho bệnh này.
            'theme': 'purple',
+           # group là nhóm bệnh, dùng để phân loại và xử lý cạnh tranh trong cùng nhóm.
            'group': 'Hô hấp & truyền nhiễm',
+           # description mô tả ngắn các đặc điểm thường gặp của bệnh.
            'description': 'Bệnh hô hấp do virus với sốt, ho khan, khó thở và mất vị giác là các dấu hiệu nổi bật.',
+           # advice là lời khuyên định hướng, không phải chỉ định điều trị.
            'advice': 'Nghỉ ngơi, đeo khẩu trang, theo dõi SpO2 và đi khám nếu khó thở tăng.',
+           # age_range là khoảng tuổi thường gặp; nếu tuổi người dùng lệch quá xa, điểm bệnh bị giảm.
            'age_range': (5, 90),
+           # gender = "all" nghĩa là bệnh có thể gặp ở mọi giới.
            'gender': 'all',
+           # priority = "high" làm xác suất tiên nghiệm của bệnh cao hơn nhóm medium/low.
            'priority': 'high',
+           # core là các triệu chứng cốt lõi; thiếu các triệu chứng này thì bệnh bị trừ điểm mạnh.
            'core': ['S03', 'S04', 'S05'],
+           # weights là trọng số triệu chứng:
+           # - S05 mất vị giác có trọng số 3.5, rất đặc trưng cho COVID-19 trong mô hình.
+           # - S04 khó thở trọng số 3.0, quan trọng nhưng không riêng cho COVID-19.
+           # - S01/S08 có trọng số thấp hơn vì chỉ là triệu chứng hỗ trợ.
            'weights': {'S02': 2.6, 'S03': 2.8, 'S04': 3.0, 'S05': 3.5, 'S06': 1.8, 'S07': 1.6, 'S01': 1.1, 'S08': 1.0}},
+ # Các bệnh bên dưới dùng cùng cấu trúc như ví dụ covid ở trên.
+ # Khi muốn thêm bệnh mới, chỉ cần thêm một mục mới với đủ các trường:
+ # name, icon, theme, group, description, advice, age_range, gender, priority, core, weights.
  'influenza': {'name': 'Cúm mùa',
                'icon': '🤒',
                'theme': 'blue',
@@ -2211,4 +2436,7 @@ DISEASES = {'covid': {'name': 'COVID-19',
                       'core': ['S90', 'S92'],
                       'weights': {'S90': 3.4, 'S92': 3.0, 'S91': 2.4}}}
 
+# DISEASE_COUNT tự động đếm số bệnh hiện có trong kho tri thức.
+# Khi thêm hoặc xóa bệnh trong DISEASES, giá trị này tự cập nhật theo len(DISEASES).
+# API health có thể dùng giá trị này để kiểm tra quy mô kho tri thức.
 DISEASE_COUNT = len(DISEASES)
